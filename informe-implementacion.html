@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Informe de implementación — Talento Tech Valle</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #111c2f;
+    --panel-2: #0e1728;
+    --border: #1e2c44;
+    --text: #dbe7f5;
+    --muted: #8fa3bd;
+    --accent: #22d3ee;
+    --accent-2: #34d399;
+    --warn: #fbbf24;
+    --code: #0a1424;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.65;
+    font-size: 15px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: linear-gradient(135deg, #0e2a3e 0%, #111c2f 55%, #131a30 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 36px;
+    margin-bottom: 28px;
+  }
+  .kicker { color: var(--accent); letter-spacing: .16em; text-transform: uppercase; font-size: 11px; font-weight: 700; }
+  h1 { margin: 8px 0 6px; font-size: 30px; line-height: 1.2; }
+  h2 {
+    font-size: 21px;
+    margin: 44px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    color: #eaf4ff;
+  }
+  h3 { font-size: 16px; margin: 26px 0 10px; color: var(--accent); }
+  p { margin: 10px 0; }
+  .lead { color: var(--muted); max-width: 820px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    background: rgba(34, 211, 238, .08);
+    border: 1px solid rgba(34, 211, 238, .28);
+    color: #a5f3fc;
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  nav.toc {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 8px;
+  }
+  nav.toc strong { display: block; font-size: 11px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  nav.toc a { color: var(--accent); text-decoration: none; font-size: 13px; display: inline-block; margin: 3px 16px 3px 0; }
+  nav.toc a:hover { text-decoration: underline; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 18px; }
+  section:target { border-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: #a9c6e6; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; background: rgba(255,255,255,.02); }
+  tr:last-child td { border-bottom: none; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: rgba(34, 211, 238, .09);
+    color: #a5f3fc;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #cbd9ea;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+  .ok, .partial {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .ok { color: #6ee7b7; background: rgba(52, 211, 153, .12); border: 1px solid rgba(52, 211, 153, .3); }
+  .partial { color: #fcd34d; background: rgba(251, 191, 36, .1); border: 1px solid rgba(251, 191, 36, .3); }
+  .diagram { white-space: pre; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .note {
+    border-left: 3px solid var(--warn);
+    background: rgba(251, 191, 36, .06);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: #fde68a;
+  }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 36px; }
+  @media (max-width: 760px) {
+    .wrap { padding: 16px 12px 48px; }
+    header.hero { padding: 22px; }
+    section { padding: 18px 16px; }
+    h1 { font-size: 24px; }
+    table { display: block; overflow-x: auto; }
+  }
+  @media print {
+    body { background: #fff; color: #111; font-size: 11px; }
+    .wrap { max-width: none; padding: 0; }
+    header.hero, section, nav.toc { background: #fff; border-color: #bbb; color: #111; }
+    nav.toc { display: none; }
+    h1, h2, h3, th { color: #111; }
+    .lead, footer, .kicker { color: #444; }
+    pre { background: #f5f5f5; border-color: #ccc; color: #111; white-space: pre-wrap; }
+    code { background: #eee; color: #111; }
+    th { background: #f0f0f0; }
+    .note { color: #333; background: #fafafa; }
+    section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Informe de implementación · MVP arquitectónico</div>
+  <h1>Talento Tech Valle<br /><span style="color:var(--accent)">Revista Tech Valle</span></h1>
+  <p class="lead">Plataforma web para impulsar el primer empleo de estudiantes de Ingeniería de Sistemas y validar emprendimientos, construida sobre Next.js 14, Supabase y dos servidores MCP stateless.</p>
+  <div class="chips">
+    <span class="chip">Fecha: 22 de noviembre de 2026</span>
+    <span class="chip">Versión: informe v1.0</span>
+    <span class="chip">Stack: Next.js 14 · TypeScript · Supabase · MCP · OpenAI</span>
+    <span class="chip">Estado: implementado y verificado en local</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>Contenido</strong>
+  <a href="#resumen">1. Resumen ejecutivo</a>
+  <a href="#alcance">2. Alcance y entregables</a>
+  <a href="#arquitectura">3. Arquitectura</a>
+  <a href="#modulos">4. Módulos</a>
+  <a href="#contrato">5. Contrato MCP</a>
+  <a href="#bd">6. Base de datos</a>
+  <a href="#seguridad">7. Seguridad</a>
+  <a href="#verificacion">8. Verificación</a>
+  <a href="#deuda">9. Estado y deuda técnica</a>
+  <a href="#arranque">10. Puesta en marcha</a>
+  <a href="#anexos">Anexos</a>
+</nav>
+
+<section id="resumen">
+  <h2>1. Resumen ejecutivo</h2>
+  <p>Se transformó el prototipo estático existente en una base de código de producción con tres capas separadas:</p>
+  <ol>
+    <li><strong>Cliente (Next.js 14):</strong> rutas, componentes y formularios.</li>
+    <li><strong>BFF (Route Handlers):</strong> autenticación JWT, validación, persistencia y cliente MCP. Es el único punto que habla con Supabase y con los servidores de IA.</li>
+    <li><strong>Servidores MCP (Node.js/TypeScript, Streamable HTTP):</strong> dos agentes stateless — <em>Curación</em> y <em>Diagnóstico</em> — con tools tipadas con Zod que delegan el razonamiento a un LLM.</li>
+  </ol>
+  <p>El cambio arquitectónico más importante es que <strong>el MCP no persiste datos</strong>: recibe contenido (o una signed URL), devuelve un objeto validado y el BFF decide qué guardar. Esto permite escalar los MCP horizontalmente, cambiar el proveedor de IA sin migrar datos y sustituir un agente modificando una sola variable de entorno.</p>
+  <p><strong>Nombre recomendado:</strong> <em>Talento Tech Valle</em> como marca paraguas y <em>Revista Tech Valle</em> como marca editorial. Se descarta «Revista Tech» por ser genérico.</p>
+</section>
+
+<section id="alcance">
+  <h2>2. Alcance y estado de los entregables</h2>
+  <table>
+    <thead><tr><th>#</th><th>Entregable</th><th>Estado</th><th>Evidencia</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Diagrama de arquitectura y comunicación</td><td><span class="ok">COMPLETO</span></td><td><code>docs/01-arquitectura.md</code></td></tr>
+      <tr><td>2</td><td>Esquema SQL (8 tablas + vista + RLS)</td><td><span class="ok">COMPLETO</span></td><td><code>supabase/migrations/0001_initial_schema.sql</code></td></tr>
+      <tr><td>3</td><td>MCP de Curación con extracción y versiones</td><td><span class="ok">COMPLETO</span></td><td><code>mcp/curation/src/index.ts</code></td></tr>
+      <tr><td>4</td><td>MCP de Diagnóstico con reporte LLM</td><td><span class="ok">COMPLETO</span></td><td><code>mcp/diagnostic/src/index.ts</code></td></tr>
+      <tr><td>5</td><td>UI de subida e historial de curación</td><td><span class="ok">COMPLETO</span></td><td><code>components/curation/*</code></td></tr>
+      <tr><td>6</td><td>Plan de implementación de 2 semanas</td><td><span class="ok">COMPLETO</span></td><td><code>docs/02-plan-implementacion.md</code></td></tr>
+      <tr><td>—</td><td>BFF, contratos y configuración</td><td><span class="ok">COMPLETO</span></td><td><code>lib/*</code>, <code>app/api/*</code></td></tr>
+      <tr><td>—</td><td>UI del módulo Top 10</td><td><span class="partial">PARCIAL</span></td><td>Solo BD y RLS; falta la interfaz</td></tr>
+      <tr><td>—</td><td>Formulario de diagnóstico conectado al MCP</td><td><span class="partial">PARCIAL</span></td><td>Endpoint listo; UI usa scoring local</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="arquitectura">
+  <h2>3. Arquitectura implementada</h2>
+
+  <h3>3.1 Componentes y comunicación</h3>
+<pre class="diagram"><code>+---------------+      HTTPS / JSON       +--------------------+
+|  Next.js UI   | ----------------------&gt; |  Next.js BFF       |
+|  RSC + Client | &lt;---------------------- |  app/api/*         |
++---------------+                         +---------+----------+
+        | JWT / Realtime                            | MCP / Streamable HTTP
+        v                                          v
++--------------------+                 +---------------------------+
+|     Supabase       | &lt;--service role |  MCP Client SDK           |
+|  DB / Auth / Store |                 |  lib/mcp-client.ts        |
++--------------------+                 +------------+--------------+
+                                                   |
+                        +--------------------------+--------------------------+
+                        |                                                     |
+                        v                                                     v
+              +---------------------+                           +---------------------+
+              |   mcp-curacion      |                           |  mcp-diagnostico    |
+              |   :3001/mcp         |                           |  :3002/mcp          |
+              +----------+----------+                           +----------+----------+
+                         |                                                |
+                         +-----------------------+------------------------+
+                                                 v
+                                    +-------------------------+
+                                    |  OpenAI / LLM Gateway   |
+                                    +-------------------------+</code></pre>
+  <ul>
+    <li><strong>Navegador → BFF:</strong> <code>fetch</code> + Route Handlers.</li>
+    <li><strong>BFF → Supabase:</strong> <code>@supabase/ssr</code> para sesión con cookies y service role para operaciones de servidor.</li>
+    <li><strong>BFF → MCP:</strong> <code>StreamableHTTPClientTransport</code> con pool por servidor y reintento (<code>lib/mcp-client.ts:48</code>).</li>
+    <li><strong>MCP → LLM:</strong> <code>chat.completions</code> con <code>response_format: json_object</code>, validado con Zod. Cliente OpenAI perezoso: el servidor arranca y responde <code>/healthz</code> sin clave.</li>
+    <li><strong>MCP → archivos:</strong> los documentos se suben una vez a Storage; el BFF firma URLs con TTL de 5 min y el MCP las descarga. Allowlist opcional <code>MCP_ALLOWED_HOSTS</code> contra SSRF.</li>
+  </ul>
+
+  <h3>3.2 Flujo de curación</h3>
+  <ol>
+    <li>El editor sube <code>.docx</code>, <code>.odt</code> o <code>.md</code> (máx. 20 MB) y hasta 5 imágenes.</li>
+    <li>El BFF valida MIME, tamaño, JWT y rol; guarda en <code>documentos</code> y firma URLs.</li>
+    <li><code>curar_contenido</code> extrae texto e imágenes (<code>mammoth</code> / <code>JSZip</code> + <code>fast-xml-parser</code>) y genera <em>n</em> variantes con enfoques conservador, equilibrado y divulgativo.</li>
+    <li>Cada variante se persiste como fila inmutable; un trigger asigna el número correlativo.</li>
+    <li>El editor compara con diff LCS en cliente; aprobar actualiza <code>version_activa_id</code>, el contenido y el estado a <code>aprobado</code>.</li>
+    <li>«Regenerar» añade versiones nuevas sin sobrescribir las anteriores.</li>
+  </ol>
+
+  <h3>3.3 Flujo de diagnóstico</h3>
+  <ol>
+    <li>Envío de GitHub, descripción, stack, captura opcional y consentimiento.</li>
+    <li>El BFF sube la captura a <code>capturas</code>, la firma y llama a <code>analizar_empleabilidad</code>.</li>
+    <li>El MCP consulta demanda regional (14 tecnologías), obtiene señales de GitHub (stars, lenguajes, README, tests, CI, licencia, último push) y envía la captura al LLM con visión.</li>
+    <li>El LLM devuelve puntaje, nivel, tecnologías foco, red flags, fortalezas y recomendaciones.</li>
+    <li>El BFF persiste en <code>diagnosticos</code> y, si el puntaje ≥ 75 hay consentimiento, crea el proyecto postulable al Top 10.</li>
+  </ol>
+
+  <h3>3.4 Decisiones técnicas</h3>
+  <table>
+    <thead><tr><th>Decisión</th><th>Justificación</th></tr></thead>
+    <tbody>
+      <tr><td>MCP stateless sin BD</td><td>Réplicas sin sesión pegajosa; separa IA de reglas de negocio y RLS.</td></tr>
+      <tr><td>Streamable HTTP (2025-06-18)</td><td><code>stdio</code> exige proceso local; SSE legacy está en desuso.</td></tr>
+      <tr><td>Zod en MCP y BFF</td><td>Doble validación de entradas y de salidas del LLM.</td></tr>
+      <tr><td>Signed URLs en vez de base64</td><td>Evita binarios grandes dentro de mensajes JSON.</td></tr>
+      <tr><td>Numeración por trigger</td><td>El historial es inmutable: regenerar nunca sobrescribe.</td></tr>
+      <tr><td>Service role solo en servidor</td><td>Ninguna credencial privada con prefijo <code>NEXT_PUBLIC_*</code>.</td></tr>
+      <tr><td>Reporte <code>jsonb</code> + columnas derivadas</td><td>Conserva la respuesta completa y permite consultar campos sin parsear.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="modulos">
+  <h2>4. Detalle de módulos</h2>
+
+  <h3>4.1 Módulo Revista</h3>
+  <ul>
+    <li>Subida drag &amp; drop con validación (<code>DocumentUploader.tsx</code>).</li>
+    <li>Extracción real de DOCX/ODT/Markdown con imágenes incrustadas.</li>
+    <li>Corrección ortográfica y de redacción, resumen, tags y portada sugerida. Sin imágenes, el LLM devuelve un prompt de portada.</li>
+    <li>Historial con confianza, modelo, prompt version, tags, diff y aprobación (<code>CurationHistory.tsx</code>).</li>
+    <li>Regeneración de 2 versiones adicionales bajo demanda. Ruta: <code>/editor</code>.</li>
+  </ul>
+
+  <h3>4.2 Módulo Diagnóstico</h3>
+  <ul>
+    <li><code>demanda_mercado</code>: catálogo versionado con 14 tecnologías, tendencia y salario de referencia.</li>
+    <li><code>analizar_empleabilidad</code>: calibra 55% stack vs. demanda, 25% calidad evidenciable, 20% captura e inglés; descuenta por red flags confirmadas.</li>
+    <li>Degradación elegante: sin <code>GITHUB_TOKEN</code>, <code>github_signals</code> es <code>null</code>.</li>
+    <li>Endpoint <code>POST /api/diagnostic/analyze</code> con persistencia y postulación condicional.</li>
+  </ul>
+
+  <h3>4.3 Módulo Top 10 Emprendiendo</h3>
+  <ul>
+    <li><code>proyectos</code> con consentimiento explícito (Ley 1581) y destacado semanal.</li>
+    <li><code>likes</code>, <code>calificaciones</code> (1–5) y <code>comentarios</code> con PK compuesta.</li>
+    <li>Vista <code>top10_semanal</code> con <code>security_invoker</code>: ranking de 7 días (likes ×2, comentarios ×3, estrellas ×5).</li>
+    <li>RLS: lectura pública solo con consentimiento; escritura autenticada y propio.</li>
+    <li><span class="partial">PENDIENTE</span> Feed, likes, estrellas, comentarios y Realtime.</li>
+  </ul>
+</section>
+
+<section id="contrato">
+  <h2>5. Contrato de tools MCP</h2>
+  <table>
+    <thead><tr><th>Servidor</th><th>Tool</th><th>Entrada relevante</th><th>Salida</th></tr></thead>
+    <tbody>
+      <tr><td>Curación</td><td><code>extraer_documento</code></td><td><code>archivo_url</code> o <code>contenido_base64</code>, <code>mime</code></td><td><code>texto</code>, <code>imagenes[]</code>, <code>metadatos</code></td></tr>
+      <tr><td>Curación</td><td><code>curar_contenido</code></td><td><code>archivo_url</code>, <code>variantes</code> (1–5), <code>image_urls</code></td><td><code>versiones[]</code>, <code>modelo</code>, <code>prompt_version</code>, <code>tokens_totales</code></td></tr>
+      <tr><td>Curación</td><td><code>comparar_versiones</code></td><td><code>versionA</code>, <code>versionB</code></td><td><code>diff_md</code> unified</td></tr>
+      <tr><td>Diagnóstico</td><td><code>demanda_mercado</code></td><td><code>region</code></td><td><code>tecnologias[]</code> con demanda, tendencia y salario</td></tr>
+      <tr><td>Diagnóstico</td><td><code>analizar_empleabilidad</code></td><td><code>github_url</code>, <code>descripcion</code>, <code>stack[]</code>, <code>screenshot_url</code></td><td><code>puntaje</code>, <code>nivel</code>, <code>tecnologias_foco[]</code>, <code>red_flags[]</code>, <code>postulable_top10</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="bd">
+  <h2>6. Base de datos</h2>
+  <table>
+    <thead><tr><th>Tabla</th><th>Propósito</th><th>Control de acceso</th></tr></thead>
+    <tbody>
+      <tr><td><code>usuarios</code></td><td>Perfil extendido con rol</td><td>Público; solo el dueño edita</td></tr>
+      <tr><td><code>articulos</code></td><td>Artículo, estado y versión activa</td><td>Publicados públicos; borradores solo su editor</td></tr>
+      <tr><td><code>curacion_versiones</code></td><td>Historial inmutable</td><td>Legible con el artículo; escribe su editor</td></tr>
+      <tr><td><code>diagnosticos</code></td><td>Reporte JSONB del MCP</td><td>Privado del estudiante</td></tr>
+      <tr><td><code>proyectos</code></td><td>Emprendimientos postulables</td><td>Públicos solo con consentimiento</td></tr>
+      <tr><td><code>comentarios</code></td><td>Comentarios del feed</td><td>Lectura pública; escritura propia</td></tr>
+      <tr><td><code>likes</code></td><td>Me gusta (PK compuesta)</td><td>Lectura pública; escritura propia</td></tr>
+      <tr><td><code>calificaciones</code></td><td>Estrellas 1–5 (PK compuesta)</td><td>Lectura pública; escritura propia</td></tr>
+      <tr><td><code>top10_semanal</code></td><td>Ranking semanal</td><td><code>security_invoker</code></td></tr>
+    </tbody>
+  </table>
+  <p>Incluye buckets de Storage (<code>documentos</code>, <code>capturas</code>, <code>portadas</code>), trigger de <code>updated_at</code>, numeración automática de versiones y funciones <code>security definer</code> para roles.</p>
+</section>
+
+<section id="seguridad">
+  <h2>7. Seguridad y cumplimiento</h2>
+  <ul>
+    <li>JWT verificado en cada Route Handler; roles <code>editor</code>/<code>admin</code> en curación.</li>
+    <li>Service role solo en servidor; signed URLs de corta duración para el MCP.</li>
+    <li>Validación Zod en dos capas y allowlist de hosts para descargas.</li>
+    <li><span class="partial">PENDIENTE</span> Sanitización de Markdown (<code>rehype-sanitize</code>) antes de renderizar contenido de IA.</li>
+    <li>Consentimiento explícito de publicación (Habeas Data, Ley 1581 de 2012).</li>
+    <li>Secretos por entorno, nunca logueados ni devueltos al cliente.</li>
+  </ul>
+</section>
+
+<section id="verificacion">
+  <h2>8. Verificación realizada</h2>
+  <table>
+    <thead><tr><th>Prueba</th><th>Comando</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Typecheck app</td><td><code>npx tsc --noEmit</code></td><td><span class="ok">SIN ERRORES</span></td></tr>
+      <tr><td>Typecheck MCP curación</td><td><code>npx tsc --noEmit -p tsconfig.json</code></td><td><span class="ok">SIN ERRORES</span></td></tr>
+      <tr><td>Typecheck MCP diagnóstico</td><td><code>npx tsc --noEmit -p tsconfig.json</code></td><td><span class="ok">SIN ERRORES</span></td></tr>
+      <tr><td>Lint</td><td><code>npm run lint</code></td><td><span class="ok">SIN WARNINGS</span></td></tr>
+      <tr><td>Build de producción</td><td><code>npm run build</code></td><td><span class="ok">12 RUTAS</span></td></tr>
+      <tr><td>Listado de tools</td><td>Cliente SDK contra :3001 y :3002</td><td><span class="ok">5 TOOLS</span></td></tr>
+      <tr><td><code>extraer_documento</code></td><td>Markdown en base64</td><td><span class="ok">TEXTO EXTRAÍDO</span></td></tr>
+      <tr><td><code>comparar_versiones</code></td><td>Dos textos de prueba</td><td><span class="ok">DIFF GENERADO</span></td></tr>
+      <tr><td><code>demanda_mercado</code></td><td><code>region: valle</code></td><td><span class="ok">14 TECNOLOGÍAS</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note">El build se ejecutó con <code>NEXT_FONT_GOOGLE_MOCKED_RESPONSES</code> porque el entorno de verificación no tiene acceso a Google Fonts. Es una limitación del entorno, no del código: el proyecto usa <code>next/font/google</code> en <code>app/layout.tsx</code>.</div>
+</section>
+
+<section id="deuda">
+  <h2>9. Estado actual y deuda técnica</h2>
+  <p><strong>Listo para usar:</strong> arquitectura, SQL, ambos MCP, BFF y UI editorial.</p>
+  <p><strong>Pendiente para el MVP completo (días 7–10 del plan):</strong></p>
+  <ol>
+    <li>Conectar <code>DiagnosticForm</code> a <code>POST /api/diagnostic/analyze</code> y mostrar el reporte estructurado.</li>
+    <li>Implementar el feed del Top 10 con Realtime, likes, estrellas y comentarios.</li>
+    <li>Añadir <code>rehype-sanitize</code> antes de renderizar Markdown generado por IA.</li>
+    <li>Reintento de <code>completeJson</code> ante JSON inválido y rate limiting por usuario.</li>
+    <li>Para documentos largos: encolar la curación y notificar por Realtime.</li>
+    <li>Desplegar MCP en Fly.io/Railway, Next.js en Vercel y aplicar la migración en Supabase.</li>
+  </ol>
+</section>
+
+<section id="arranque">
+  <h2>10. Puesta en marcha</h2>
+<pre><code>cp .env.example .env.local
+
+npm install &amp;&amp; npm run dev
+
+cd mcp/curation &amp;&amp; npm install &amp;&amp; npm run dev
+cd mcp/diagnostic &amp;&amp; npm install &amp;&amp; npm run dev</code></pre>
+  <p>Aplicar <code>supabase/migrations/0001_initial_schema.sql</code> en el SQL Editor de Supabase o con <code>supabase db push</code>. Rutas: <code>/editor</code> (curación), <code>/diagnostico</code> (prototipo actual), <code>/revista</code> (visor).</p>
+</section>
+
+<section id="anexos">
+  <h2>Anexo A — Inventario de archivos</h2>
+  <table>
+    <thead><tr><th>Archivo</th><th>Rol</th></tr></thead>
+    <tbody>
+      <tr><td><code>docs/01-arquitectura.md</code></td><td>Arquitectura, diagramas y contrato MCP</td></tr>
+      <tr><td><code>docs/02-plan-implementacion.md</code></td><td>Sprint de 2 semanas</td></tr>
+      <tr><td><code>docs/03-informe-implementacion.md</code></td><td>Informe en Markdown</td></tr>
+      <tr><td><code>informe-implementacion.html</code></td><td>Este informe en HTML</td></tr>
+      <tr><td><code>supabase/migrations/0001_initial_schema.sql</code></td><td>Esquema, RLS y Storage</td></tr>
+      <tr><td><code>mcp/shared/src/llm.ts</code></td><td>Cliente OpenAI perezoso con JSON validado</td></tr>
+      <tr><td><code>mcp/shared/src/extract.ts</code></td><td>Extracción DOCX/ODT/MD e imágenes</td></tr>
+      <tr><td><code>mcp/shared/src/http.ts</code></td><td>Descarga segura de signed URLs</td></tr>
+      <tr><td><code>mcp/curation/src/index.ts</code></td><td>Servidor MCP de curación</td></tr>
+      <tr><td><code>mcp/diagnostic/src/index.ts</code></td><td>Servidor MCP de diagnóstico</td></tr>
+      <tr><td><code>mcp/diagnostic/src/demanda.ts</code></td><td>Catálogo de demanda regional</td></tr>
+      <tr><td><code>mcp/diagnostic/src/github.ts</code></td><td>Señales de GitHub</td></tr>
+      <tr><td><code>lib/auth.ts</code></td><td>JWT, roles y errores</td></tr>
+      <tr><td><code>lib/api-types.ts</code></td><td>Esquemas Zod compartidos</td></tr>
+      <tr><td><code>lib/mcp-client.ts</code></td><td>Pool de clientes MCP con reintento</td></tr>
+      <tr><td><code>lib/supabase/{client,server}.ts</code></td><td>Clientes browser/server/admin</td></tr>
+      <tr><td><code>app/api/curation/upload/route.ts</code></td><td>Subida y primera curación</td></tr>
+      <tr><td><code>app/api/curation/generate/route.ts</code></td><td>Regeneración de versiones</td></tr>
+      <tr><td><code>app/api/curation/versions/route.ts</code></td><td>Listado de historial</td></tr>
+      <tr><td><code>app/api/curation/versions/[id]/select/route.ts</code></td><td>Aprobación de versión</td></tr>
+      <tr><td><code>app/api/diagnostic/analyze/route.ts</code></td><td>Diagnóstico y postulación</td></tr>
+      <tr><td><code>components/curation/DocumentUploader.tsx</code></td><td>Subida drag &amp; drop</td></tr>
+      <tr><td><code>components/curation/CurationHistory.tsx</code></td><td>Historial, diff y aprobación</td></tr>
+      <tr><td><code>components/curation/EditorWorkspace.tsx</code></td><td>Estudio editorial</td></tr>
+      <tr><td><code>app/editor/page.tsx</code></td><td>Ruta del editor</td></tr>
+      <tr><td><code>.env.example</code>, <code>.eslintrc.json</code></td><td>Configuración</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Anexo B — Variables de entorno</h3>
+  <table>
+    <thead><tr><th>Variable</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code>, <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>Cliente y sesión</td></tr>
+      <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>Operaciones de servidor (BFF)</td></tr>
+      <tr><td><code>MCP_CURACION_URL</code>, <code>MCP_DIAGNOSTICO_URL</code></td><td>Endpoints Streamable HTTP</td></tr>
+      <tr><td><code>OPENAI_API_KEY</code>, <code>OPENAI_BASE_URL</code></td><td>Proveedor de LLM</td></tr>
+      <tr><td><code>CURACION_MODEL</code>, <code>DIAGNOSTICO_MODEL</code></td><td>Modelos por agente</td></tr>
+      <tr><td><code>MCP_ALLOWED_HOSTS</code></td><td>Allowlist de signed URLs</td></tr>
+      <tr><td><code>GITHUB_TOKEN</code></td><td>Opcional; amplía límites de GitHub</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>Talento Tech Valle · Informe de implementación v1.0 · 22 de noviembre de 2026</footer>
+
+</div>
+</body>
+</html>

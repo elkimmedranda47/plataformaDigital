@@ -1,0 +1,137 @@
+import mammoth from "mammoth";
+import JSZip from "jszip";
+import { XMLParser } from "fast-xml-parser";
+
+export type ImagenExtraida = {
+  nombre: string;
+  dataUrl: string;
+};
+
+export type DocumentoExtraido = {
+  texto: string;
+  imagenes: ImagenExtraida[];
+  metadatos: {
+    nombre: string;
+    mime: string;
+    formato: "docx" | "odt" | "md";
+    caracteres: number;
+  };
+};
+
+const DOCX_MIME =
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const ODT_MIME = "application/vnd.oasis.opendocument.text";
+
+function esImagen(nombre: string): boolean {
+  return /\.(png|jpe?g|webp|gif)$/i.test(nombre);
+}
+
+function aDataUrl(buffer: Buffer, nombre: string): string {
+  if (/\.png$/i.test(nombre)) return `data:image/png;base64,${buffer.toString("base64")}`;
+  if (/\.gif$/i.test(nombre)) return `data:image/gif;base64,${buffer.toString("base64")}`;
+  if (/\.webp$/i.test(nombre)) return `data:image/webp;base64,${buffer.toString("base64")}`;
+  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+}
+
+async function extraerDocx(buffer: Buffer, nombre: string): Promise<DocumentoExtraido> {
+  const imagenes: ImagenExtraida[] = [];
+
+  const convertido = await mammoth.convertToHtml(
+    { buffer },
+    {
+      convertImage: mammoth.images.imgElement(async (image) => {
+        const datos = await image.read("base64");
+        const nombreImagen = `imagen-${imagenes.length + 1}.${image.contentType.split("/")[1] ?? "png"}`;
+        imagenes.push({ nombre: nombreImagen, dataUrl: `data:${image.contentType};base64,${datos}` });
+        return { src: `data:${image.contentType};base64,${datos}` };
+      }),
+    },
+  );
+
+  const texto = (await mammoth.extractRawText({ buffer })).value.trim();
+
+  return construir(texto, imagenes, nombre, DOCX_MIME, "docx");
+}
+
+function caminarXml(nodo: unknown, salida: string[]): void {
+  if (nodo === null || nodo === undefined) return;
+  if (typeof nodo === "string" || typeof nodo === "number") {
+    salida.push(String(nodo));
+    return;
+  }
+  if (Array.isArray(nodo)) {
+    nodo.forEach((hijo) => caminarXml(hijo, salida));
+    return;
+  }
+  if (typeof nodo !== "object") return;
+
+  for (const [clave, valor] of Object.entries(nodo as Record<string, unknown>)) {
+    if (clave === "#text") {
+      salida.push(String(valor));
+      continue;
+    }
+    if (clave === "p" || clave === "h") {
+      caminarXml(valor, salida);
+      salida.push("\n");
+      continue;
+    }
+    caminarXml(valor, salida);
+  }
+}
+
+async function extraerOdt(buffer: Buffer, nombre: string): Promise<DocumentoExtraido> {
+  const zip = await JSZip.loadAsync(buffer);
+  const archivoContenido = zip.file("content.xml");
+  if (!archivoContenido) throw new Error("ODT inválido: falta content.xml");
+
+  const xml = await archivoContenido.async("string");
+  const parser = new XMLParser({ removeNSPrefix: true, ignoreAttributes: false });
+  const arbol = parser.parse(xml);
+  const partes: string[] = [];
+  caminarXml(arbol, partes);
+
+  const texto = partes
+    .join("")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  const imagenes: ImagenExtraida[] = [];
+  for (const ruta of Object.keys(zip.files)) {
+    if (!ruta.startsWith("Pictures/") || !esImagen(ruta) || zip.files[ruta].dir) continue;
+    const datos = await zip.files[ruta].async("nodebuffer");
+    imagenes.push({
+      nombre: ruta.split("/").pop() ?? `imagen-${imagenes.length + 1}`,
+      dataUrl: aDataUrl(datos, ruta),
+    });
+  }
+
+  return construir(texto, imagenes, nombre, ODT_MIME, "odt");
+}
+
+function construir(
+  texto: string,
+  imagenes: ImagenExtraida[],
+  nombre: string,
+  mime: string,
+  formato: "docx" | "odt" | "md",
+): DocumentoExtraido {
+  return {
+    texto,
+    imagenes,
+    metadatos: { nombre, mime, formato, caracteres: texto.length },
+  };
+}
+
+export async function extraerDocumento(
+  buffer: Buffer,
+  mime: string,
+  nombre: string,
+): Promise<DocumentoExtraido> {
+  if (mime === DOCX_MIME || /\.docx$/i.test(nombre)) return extraerDocx(buffer, nombre);
+  if (mime === ODT_MIME || /\.odt$/i.test(nombre)) return extraerOdt(buffer, nombre);
+  if (mime.startsWith("text/") || /\.(md|markdown|txt)$/i.test(nombre)) {
+    return construir(buffer.toString("utf8").trim(), [], nombre, mime, "md");
+  }
+  throw new Error(`Formato no soportado: ${mime}`);
+}

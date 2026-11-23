@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #121316; }
+::-webkit-scrollbar-thumb { background: #2e323d; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #d4af37; }
+
+@layer utilities {
+  .page-shadow-left {
+    box-shadow: inset -15px 0 20px -10px rgba(0, 0, 0, 0.25), -5px 0 15px rgba(0, 0, 0, 0.15);
+  }
+  .page-shadow-right {
+    box-shadow: inset 15px 0 20px -10px rgba(0, 0, 0, 0.25), 5px 0 15px rgba(0, 0, 0, 0.15);
+  }
+  .spine-shadow {
+    background: linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 10%, rgba(0,0,0,0) 90%, rgba(0,0,0,0.2) 100%);
+  }
+}
