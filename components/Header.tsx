@@ -15,11 +15,11 @@ import {
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const tabs = [
-  { href: "/diagnostico", label: "Diagnóstico GitHub", icon: FaChartLine, active: "bg-cyan-500", iconClass: "" },
-  { href: "/top10", label: "Top 10", icon: FaTrophy, active: "bg-rose-500", iconClass: "text-rose-400" },
-  { href: "/revista", label: "Revista Digital", icon: FaBookOpen, active: "bg-brand-gold", iconClass: "text-brand-gold" },
-  { href: "/publicar", label: "Publicar", icon: FaUpload, active: "bg-emerald-500", iconClass: "text-emerald-400" },
-  { href: "/hito-5", label: "Hito 5", icon: FaDiagramProject, active: "bg-amber-500", iconClass: "" },
+  { href: "/diagnostico", label: "Diagnóstico GitHub", icon: FaChartLine },
+  { href: "/top10", label: "Top 10", icon: FaTrophy },
+  { href: "/revista", label: "Revista Digital", icon: FaBookOpen },
+  { href: "/publicar", label: "Publicar", icon: FaUpload },
+  { href: "/hito-5", label: "Hito 5", icon: FaDiagramProject },
 ];
 
 export default function Header() {
@@ -27,56 +27,39 @@ export default function Header() {
   const { user, cargando, configurado, salir } = useAuth();
 
   return (
-    <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center text-slate-950 text-xl shadow-lg shadow-cyan-500/10">
-          <FaCode />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-bold tracking-wider text-base lg:text-lg text-slate-100 font-display">TALENTO TECH VALLE</h1>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-brand-gold/10 text-brand-gold border border-brand-gold/30">
-              ED. 45 - NOV 2026
-            </span>
+    <header className="sticky top-0 z-50 bg-black text-white">
+      <div className="px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-neutral-800">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 border border-white/40 flex items-center justify-center text-xl">
+            <FaCode />
           </div>
-          <p className="text-xs text-slate-400">Diagnóstico Junior & Vitrina Editorial (16 Páginas)</p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-bold tracking-wider text-base lg:text-lg font-display uppercase">Talento Tech Valle</h1>
+              <span className="text-[10px] font-semibold px-2 py-0.5 border border-white/30 text-white/70">
+                ED. 45 · NOV 2026
+              </span>
+            </div>
+            <p className="text-xs text-white/50">Diagnóstico Junior & Vitrina Editorial (16 Páginas)</p>
+          </div>
         </div>
-      </div>
 
-      <div className="flex items-center gap-4 flex-wrap">
-        <nav className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
-          {tabs.map(({ href, label, icon: Icon, active, iconClass }) => {
-            const isActive = pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  isActive ? `${active} text-slate-950 shadow` : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Icon className={isActive ? "" : iconClass} /> {label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="flex items-center gap-2 text-xs border-l border-slate-800 pl-4">
+        <div className="flex items-center gap-4 flex-wrap text-xs">
           {!configurado ? (
-            <span className="text-[10px] text-amber-400 border border-amber-500/30 rounded px-2 py-1">
+            <span className="text-[10px] text-white/70 border border-white/30 px-2 py-1">
               Sin Supabase
             </span>
           ) : cargando ? (
-            <span className="text-[10px] text-slate-500">Cargando sesión…</span>
+            <span className="text-[10px] text-white/50">Cargando sesión…</span>
           ) : user ? (
             <>
-              <span className="flex items-center gap-1 text-slate-300 max-w-40 truncate" title={user.email ?? ""}>
-                <FaUser className="text-emerald-400" /> {user.email?.split("@")[0]}
+              <span className="flex items-center gap-1 text-white/80 max-w-40 truncate" title={user.email ?? ""}>
+                <FaUser className="text-[#57b3e6]" /> {user.email?.split("@")[0]}
               </span>
               <button
                 type="button"
                 onClick={() => void salir()}
-                className="flex items-center gap-1 text-slate-400 hover:text-rose-300 transition"
+                className="flex items-center gap-1 text-white/60 hover:text-white transition"
                 title="Cerrar sesión"
               >
                 <FaRightFromBracket />
@@ -85,24 +68,43 @@ export default function Header() {
           ) : (
             <Link
               href="/acceso"
-              className="text-slate-200 hover:text-cyan-300 border border-slate-700 rounded-lg px-3 py-1.5 font-semibold transition"
+              className="bg-white text-black px-3 py-1.5 font-bold border border-white hover:bg-[#057dbc] hover:text-white hover:border-[#057dbc] transition"
             >
               Acceder
             </Link>
           )}
-        </div>
 
-        <div className="hidden xl:flex items-center gap-4 text-xs border-l border-slate-800 pl-4">
-          <div>
-            <span className="text-slate-400 block text-[10px]">Tema Central</span>
-            <span className="font-medium text-amber-300">Arte & Tecnología</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block text-[10px]">Compleción</span>
-            <span className="font-semibold text-emerald-400">16 / 16 Págs (100%)</span>
+          <div className="hidden xl:flex items-center gap-4 border-l border-neutral-800 pl-4">
+            <div>
+              <span className="text-white/45 block text-[10px]">Tema Central</span>
+              <span className="font-medium text-[#57b3e6]">Arte & Tecnología</span>
+            </div>
+            <div>
+              <span className="text-white/45 block text-[10px]">Compleción</span>
+              <span className="font-semibold">16 / 16 Págs (100%)</span>
+            </div>
           </div>
         </div>
       </div>
+
+      <nav className="px-4 lg:px-8 bg-white text-[#1a1a1a] border-b border-[#d6d6d6]">
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {tabs.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold whitespace-nowrap uppercase tracking-wide transition-colors ${
+                  isActive ? "bg-black text-white" : "hover:bg-[#f0f0f0]"
+                }`}
+              >
+                <Icon /> {label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </header>
   );
 }

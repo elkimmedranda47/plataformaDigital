@@ -65,7 +65,7 @@ export function MagazineProvider({ children }: { children: React.ReactNode }) {
               type: "Splash Feature",
               status: "Aprobado",
               format: "Proyecto GitHub Postulado",
-              bgClass: "bg-slate-900 text-cyan-100",
+              bgClass: "bg-white text-[#1a1a1a]",
             }
           : p
       )
@@ -106,7 +106,7 @@ export function MagazineProvider({ children }: { children: React.ReactNode }) {
         author: publicado.autor,
         format: "Documento publicado",
         github: "N/A",
-        bgClass: esPortada ? "bg-slate-950 text-slate-100" : pagina.bgClass,
+        bgClass: "bg-white text-[#1a1a1a]",
         articuloId: publicado.id,
         contenidoMd: textoPagina,
         imagenPortadaUrl: esPortada ? publicado.imagenPortadaUrl : null,

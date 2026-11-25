@@ -115,11 +115,11 @@ export default function Top10Feed() {
     <section className="max-w-6xl w-full mx-auto px-4 py-8">
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-rose-400 mb-2">Vitrina de emprendimientos</p>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-100 font-display flex items-center gap-2">
-            <FaTrophy className="text-brand-gold" /> Top 10 semanal
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[#b91c1c] mb-2">Vitrina de emprendimientos</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#1a1a1a] font-display flex items-center gap-2">
+            <FaTrophy className="text-[#057dbc]" /> Top 10 semanal
           </h1>
-          <p className="text-xs text-slate-400 mt-2 max-w-2xl">
+          <p className="text-xs text-[#757575] mt-2 max-w-2xl">
             Ranking calculado con likes (×2), comentarios (×3) y estrellas (×5) de los últimos 7 días.
             Cualquiera puede verlo; para participar necesitas iniciar sesión.
           </p>
@@ -127,14 +127,14 @@ export default function Top10Feed() {
         <div className="flex gap-2">
           <Link
             href="/publicar"
-            className="text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2.5 rounded-lg transition"
+            className="text-xs font-bold bg-black hover:bg-[#057dbc] text-white px-4 py-2.5"
           >
             Publicar mi proyecto
           </Link>
           {!user && (
             <Link
               href="/acceso?redirect=%2Ftop10"
-              className="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-lg transition flex items-center gap-2"
+              className="text-xs font-bold bg-white hover:bg-[#f0f0f0] text-[#1a1a1a] border border-[#d6d6d6] px-4 py-2.5 flex items-center gap-2"
             >
               <FaLock /> Entrar
             </Link>
@@ -143,29 +143,29 @@ export default function Top10Feed() {
       </div>
 
       {aviso && (
-        <p className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-5">
+        <p className="text-xs text-[#8a5a00] bg-[#f5f5f5] border-l-4 border-[#8a5a00] p-3 mb-5">
           {aviso}
         </p>
       )}
 
       {cargando ? (
-        <p className="text-sm text-slate-400 flex items-center gap-2">
-          <FaSpinner className="animate-spin text-cyan-400" /> Cargando proyectos…
+        <p className="text-sm text-[#757575] flex items-center gap-2">
+          <FaSpinner className="animate-spin text-[#057dbc]" /> Cargando proyectos…
         </p>
       ) : proyectos.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center">
-          <FaTrophy className="text-4xl text-brand-gold mx-auto mb-4" />
-          <p className="text-sm text-slate-300 font-semibold">Aún no hay proyectos publicados.</p>
-          <p className="text-xs text-slate-500 mt-2">Sé la primera persona en publicar un emprendimiento.</p>
+        <div className="bg-white border border-[#d6d6d6] p-10 text-center">
+          <FaTrophy className="text-4xl text-[#057dbc] mx-auto mb-4" />
+          <p className="text-sm text-[#1a1a1a] font-semibold">Aún no hay proyectos publicados.</p>
+          <p className="text-xs text-[#757575] mt-2">Sé la primera persona en publicar un emprendimiento.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {proyectos.map((proyecto, indice) => (
             <article
               key={proyecto.id}
-              className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col"
+              className="bg-white border border-[#d6d6d6] overflow-hidden flex flex-col"
             >
-              <div className="h-36 bg-gradient-to-br from-slate-800 to-slate-950 relative overflow-hidden">
+              <div className="h-36 bg-gradient-to-br from-[#e5e5e5] to-white relative overflow-hidden border-b border-[#d6d6d6]">
                 {proyecto.imagenUrl ? (
                   <Image
                     src={proyecto.imagenUrl}
@@ -177,36 +177,36 @@ export default function Top10Feed() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="font-display text-5xl text-slate-700">#{indice + 1}</span>
+                    <span className="font-display text-5xl text-[#757575]">#{indice + 1}</span>
                   </div>
                 )}
-                <span className="absolute top-3 left-3 bg-slate-950/80 text-brand-gold border border-brand-gold/40 rounded-full px-3 py-1 text-xs font-bold">
+                <span className="absolute top-3 left-3 bg-black text-white border border-black px-3 py-1 text-xs font-bold">
                   #{indice + 1} · {Math.round(proyecto.scoreSemanal)} pts
                 </span>
               </div>
 
               <div className="p-5 flex-1 flex flex-col gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-slate-100">{proyecto.titulo}</h2>
-                  <p className="text-[11px] text-slate-500 mt-1">por {proyecto.autor}</p>
+                  <h2 className="text-base font-bold text-[#1a1a1a]">{proyecto.titulo}</h2>
+                  <p className="text-[11px] text-[#757575] mt-1">por {proyecto.autor}</p>
                 </div>
-                <p className="text-xs text-slate-400 leading-relaxed">{proyecto.descripcion}</p>
+                <p className="text-xs text-[#757575] leading-relaxed">{proyecto.descripcion}</p>
 
                 <div className="flex flex-wrap gap-1.5">
                   {proyecto.tecnologias.map((tecnologia) => (
-                    <span key={tecnologia} className="text-[10px] bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 px-2 py-0.5 rounded-full">
+                    <span key={tecnologia} className="text-[10px] bg-[#057dbc]/10 text-[#057dbc] border border-[#057dbc]/20 px-2 py-0.5">
                       {tecnologia}
                     </span>
                   ))}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 border-t border-slate-800 pt-3">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-[#757575] border-t border-[#d6d6d6] pt-3">
                   <button
                     type="button"
                     disabled={!user || accion === proyecto.id}
                     onClick={() => void alternarLike(proyecto)}
                     className={`flex items-center gap-1 transition disabled:cursor-not-allowed ${
-                      proyecto.miLike ? "text-rose-400" : "hover:text-rose-300"
+                      proyecto.miLike ? "text-[#b91c1c]" : "hover:text-[#b91c1c]"
                     }`}
                     title={user ? "Dar o quitar like" : "Inicia sesión para dar like"}
                   >
@@ -215,26 +215,26 @@ export default function Top10Feed() {
                   <button
                     type="button"
                     onClick={() => setComentariosAbiertos((actual) => (actual === proyecto.id ? null : proyecto.id))}
-                    className="flex items-center gap-1 hover:text-cyan-300 transition"
+                    className="flex items-center gap-1 hover:text-[#057dbc] transition"
                   >
                     <FaComment /> {proyecto.comentarios}
                   </button>
                   <span className="flex items-center gap-1">
-                    <FaStar className="text-brand-gold" /> {proyecto.promedioEstrellas.toFixed(2)}
+                    <FaStar className="text-[#057dbc]" /> {proyecto.promedioEstrellas.toFixed(2)}
                   </span>
                   {proyecto.githubUrl && (
                     <a
                       href={proyecto.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ml-auto flex items-center gap-1 text-cyan-400 hover:text-cyan-300"
+                      className="ml-auto flex items-center gap-1 text-[#057dbc] hover:text-[#04699b]"
                     >
                       <FaGithub /> Ver repo
                     </a>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                <div className="flex items-center gap-1 text-[11px] text-[#757575]">
                   <span>Tu calificación:</span>
                   {[1, 2, 3, 4, 5].map((estrella) => (
                     <button
@@ -243,25 +243,25 @@ export default function Top10Feed() {
                       disabled={!user || accion === proyecto.id}
                       onClick={() => void calificar(proyecto, estrella)}
                       className={`transition disabled:cursor-not-allowed ${
-                        (proyecto.miEstrellas ?? 0) >= estrella ? "text-brand-gold" : "text-slate-600 hover:text-brand-gold"
+                        (proyecto.miEstrellas ?? 0) >= estrella ? "text-[#057dbc]" : "text-[#9a9a9a] hover:text-[#057dbc]"
                       }`}
                       aria-label={`Calificar con ${estrella} estrellas`}
                     >
                       {(proyecto.miEstrellas ?? 0) >= estrella ? <FaStar /> : <FaRegStar />}
                     </button>
                   ))}
-                  {!user && <span className="ml-1 text-amber-400">(requiere cuenta)</span>}
+                  {!user && <span className="ml-1 text-[#8a5a00]">(requiere cuenta)</span>}
                 </div>
 
                 {comentariosAbiertos === proyecto.id && (
-                  <div className="border-t border-slate-800 pt-3">
+                  <div className="border-t border-[#d6d6d6] pt-3">
                     <div className="space-y-2 max-h-40 overflow-y-auto mb-3">
                       {proyecto.comentariosLista.length === 0 ? (
-                        <p className="text-[11px] text-slate-500">Sé la primera persona en comentar.</p>
+                        <p className="text-[11px] text-[#757575]">Sé la primera persona en comentar.</p>
                       ) : (
                         proyecto.comentariosLista.map((comentario) => (
-                          <p key={comentario.id} className="text-[11px] text-slate-300 bg-slate-950/50 rounded-lg p-2">
-                            <span className="text-cyan-400 font-semibold">{comentario.autor}: </span>
+                          <p key={comentario.id} className="text-[11px] text-[#1a1a1a] bg-[#f5f5f5] p-2">
+                            <span className="text-[#057dbc] font-semibold">{comentario.autor}: </span>
                             {comentario.contenido}
                           </p>
                         ))
@@ -276,20 +276,20 @@ export default function Top10Feed() {
                           }
                           maxLength={1000}
                           placeholder="Escribe un comentario…"
-                          className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:border-cyan-500 focus:outline-none"
+                          className="flex-1 bg-white border border-[#d6d6d6] px-3 py-2 text-xs focus:border-[#057dbc] focus:outline-none"
                         />
                         <button
                           type="button"
                           disabled={!textoComentario[proyecto.id]?.trim() || accion === proyecto.id}
                           onClick={() => void comentar(proyecto)}
-                          className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 rounded-lg px-3"
+                          className="bg-black hover:bg-[#057dbc] disabled:opacity-50 text-white px-3"
                           aria-label="Enviar comentario"
                         >
                           <FaPaperPlane />
                         </button>
                       </div>
                     ) : (
-                      <Link href="/acceso?redirect=%2Ftop10" className="text-[11px] text-cyan-400 hover:text-cyan-300">
+                      <Link href="/acceso?redirect=%2Ftop10" className="text-[11px] text-[#057dbc] hover:text-[#04699b]">
                         Inicia sesión para comentar →
                       </Link>
                     )}

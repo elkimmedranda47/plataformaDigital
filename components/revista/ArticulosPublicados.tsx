@@ -31,37 +31,38 @@ export default function ArticulosPublicados() {
   }, []);
 
   return (
-    <section className="max-w-6xl mx-auto w-full px-4 md:px-8 py-10 border-t border-slate-800">
+    <section className="wired-magazine bg-white text-[#1a1a1a] max-w-[1400px] mx-auto w-full px-4 md:px-8 py-10 border-t-2 border-black">
       <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-brand-gold mb-2">Edición digital</p>
-          <h2 className="text-xl font-bold text-slate-100 font-display flex items-center gap-2">
-            <FaNewspaper className="text-brand-gold" /> Artículos publicados
+          <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-white bg-black px-2 py-1">Edición digital</span>
+          <h2 className="text-xl font-black uppercase tracking-tight mt-3 flex items-center gap-2">
+            <FaNewspaper className="text-[#057dbc]" /> Artículos publicados
           </h2>
-          <p className="text-xs text-slate-400 mt-1">Lectura pública. Los comentarios viven en el Top 10 y requieren cuenta.</p>
+          <p className="text-[11px] text-[#757575] mt-1">Lectura pública. Los comentarios viven en el Top 10 y requieren cuenta.</p>
         </div>
-        <Link href="/editor" className="text-[11px] text-cyan-400 hover:text-cyan-300">
+        <Link href="/editor" className="text-[11px] font-bold text-[#057dbc] hover:underline">
           Estudio editorial (curación con MCP) →
         </Link>
       </div>
 
-      {aviso && <p className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-4">{aviso}</p>}
+      {aviso && <p className="text-[11px] text-[#1a1a1a] bg-[#f5f5f5] border-l-4 border-[#057dbc] px-3 py-2 mb-4">{aviso}</p>}
 
       {cargando ? (
-        <p className="text-xs text-slate-400 flex items-center gap-2"><FaSpinner className="animate-spin" /> Cargando artículos…</p>
+        <p className="text-[11px] text-[#757575] flex items-center gap-2"><FaSpinner className="animate-spin" /> Cargando artículos…</p>
       ) : articulos.length === 0 ? (
-        <p className="text-xs text-slate-500">
+        <p className="text-[11px] text-[#757575]">
           Todavía no hay artículos publicados. Aprueba una versión en el estudio editorial y elige “Publicar en revista”.
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {articulos.map((articulo) => (
-            <article key={articulo.id} className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-              <p className="text-[10px] text-slate-500 mb-2">
-                {articulo.autor} · {articulo.publishedAt ? new Date(articulo.publishedAt).toLocaleDateString("es-CO") : "—"}
+            <article key={articulo.id} className="bg-white border border-[#d6d6d6] hover:border-[#057dbc] p-5">
+              <p className="text-[10px] text-[#757575] mb-2">
+                <span className="font-bold text-black">{articulo.autor}</span> ·{" "}
+                {articulo.publishedAt ? new Date(articulo.publishedAt).toLocaleDateString("es-CO") : "—"}
               </p>
-              <h3 className="text-sm font-bold text-slate-100 mb-2">{articulo.titulo}</h3>
-              <p className="text-xs text-slate-400 line-clamp-3 whitespace-pre-wrap">
+              <h3 className="text-sm font-black text-[#1a1a1a] mb-2">{articulo.titulo}</h3>
+              <p className="text-[11px] text-[#757575] line-clamp-3 whitespace-pre-wrap">
                 {articulo.resumen || articulo.contenidoMd?.slice(0, 240)}
               </p>
             </article>

@@ -17,8 +17,8 @@ type Props = {
 };
 
 const inputClass =
-  "w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none";
-const labelClass = "block text-xs font-medium text-slate-300 mb-1";
+  "w-full bg-white border border-[#d6d6d6] px-3 py-2.5 text-sm text-[#1a1a1a] focus:border-[#057dbc] focus:outline-none";
+const labelClass = "block text-xs font-medium text-[#404040] mb-1";
 
 export default function PublicationForm({ titulo = "", descripcion = "", github = "", stack = "", score = 70, english = "B1" }: Props) {
   const { user, cargando: cargandoSesion, configurado } = useAuth();
@@ -75,10 +75,10 @@ export default function PublicationForm({ titulo = "", descripcion = "", github 
 
   if (!configurado) {
     return (
-      <div className="max-w-3xl mx-auto bg-slate-900 border border-amber-500/30 rounded-2xl p-8 text-sm text-amber-200">
+      <div className="max-w-3xl mx-auto bg-white border border-[#8a5a00]/30 p-8 text-sm text-[#8a5a00]">
         <h1 className="text-lg font-bold mb-3">Falta configurar Supabase</h1>
         <p className="text-xs leading-relaxed">{mensajeSinSupabase}</p>
-        <p className="text-xs text-slate-400 mt-3">
+        <p className="text-xs text-[#757575] mt-3">
           Con las variables listas, este formulario crea el perfil, guarda el diagnóstico y publica el proyecto.
         </p>
       </div>
@@ -86,20 +86,20 @@ export default function PublicationForm({ titulo = "", descripcion = "", github 
   }
 
   if (cargandoSesion) {
-    return <p className="text-sm text-slate-400">Cargando sesión…</p>;
+    return <p className="text-sm text-[#757575]">Cargando sesión…</p>;
   }
 
   if (!user) {
     return (
-      <div className="max-w-3xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center">
-        <FaLock className="text-3xl text-brand-gold mx-auto mb-4" />
-        <h1 className="text-lg font-bold text-slate-100 mb-2">Inicia sesión para publicar</h1>
-        <p className="text-xs text-slate-400 mb-6">
+      <div className="max-w-3xl mx-auto bg-white border border-[#d6d6d6] p-8 text-center">
+        <FaLock className="text-3xl text-[#057dbc] mx-auto mb-4" />
+        <h1 className="text-lg font-bold text-[#1a1a1a] mb-2">Inicia sesión para publicar</h1>
+        <p className="text-xs text-[#757575] mb-6">
           La revista se puede leer sin cuenta, pero publicar implica crear un perfil y autorizar el uso de tus datos.
         </p>
         <Link
           href="/acceso?redirect=%2Fpublicar"
-          className="inline-block bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm px-6 py-2.5 rounded-lg transition"
+          className="inline-block bg-black hover:bg-[#057dbc] text-white font-bold text-sm px-6 py-2.5 transition"
         >
           Crear cuenta o entrar
         </Link>
@@ -109,18 +109,18 @@ export default function PublicationForm({ titulo = "", descripcion = "", github 
 
   if (publicado) {
     return (
-      <div className="max-w-3xl mx-auto bg-slate-900 border border-emerald-500/40 rounded-2xl p-8 text-center">
-        <FaCircleCheck className="text-4xl text-emerald-400 mx-auto mb-4" />
-        <h1 className="text-xl font-bold text-slate-100 mb-2">Proyecto publicado</h1>
-        <p className="text-xs text-slate-400 mb-6">
-          Quedó en <code className="text-cyan-400">proyectos</code> con consentimiento explícito y su diagnóstico
-          asociado en <code className="text-cyan-400">diagnosticos</code>. Ya aparece en el Top 10 y en la revista local.
+      <div className="max-w-3xl mx-auto bg-white border border-[#1a1a1a] p-8 text-center">
+        <FaCircleCheck className="text-4xl text-[#057dbc] mx-auto mb-4" />
+        <h1 className="text-xl font-bold text-[#1a1a1a] mb-2">Proyecto publicado</h1>
+        <p className="text-xs text-[#757575] mb-6">
+          Quedó en <code className="text-[#057dbc]">proyectos</code> con consentimiento explícito y su diagnóstico
+          asociado en <code className="text-[#057dbc]">diagnosticos</code>. Ya aparece en el Top 10 y en la revista local.
         </p>
         <div className="flex justify-center gap-3">
-          <Link href="/top10" className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm px-5 py-2.5 rounded-lg">
+          <Link href="/top10" className="bg-black hover:bg-[#057dbc] text-white font-bold text-sm px-5 py-2.5">
             Ver Top 10
           </Link>
-          <Link href="/revista" className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm px-5 py-2.5 rounded-lg">
+          <Link href="/revista" className="bg-white hover:bg-[#f0f0f0] text-[#1a1a1a] font-bold text-sm px-5 py-2.5 border border-[#d6d6d6]">
             Ver revista
           </Link>
         </div>
@@ -130,12 +130,12 @@ export default function PublicationForm({ titulo = "", descripcion = "", github 
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6 max-w-6xl mx-auto">
-      <form onSubmit={enviar} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+      <form onSubmit={enviar} className="bg-white border border-[#d6d6d6] p-6 space-y-5">
         <div>
-          <h1 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-[#057dbc] flex items-center gap-2">
             <FaCloudArrowUp /> Primera publicación
           </h1>
-          <p className="text-xs text-slate-400 mt-2">
+          <p className="text-xs text-[#757575] mt-2">
             Sube la portada de tu emprendimiento, cuéntalo en unas líneas y decide públicamente si puede aparecer en la vitrina.
           </p>
         </div>
@@ -183,44 +183,44 @@ export default function PublicationForm({ titulo = "", descripcion = "", github 
 
         <div>
           <button type="button" onClick={() => imagenRef.current?.click()}
-            className="w-full border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-xl py-6 text-xs text-slate-400 hover:text-emerald-300 transition">
+            className="w-full border-2 border-dashed border-[#d6d6d6] hover:border-[#057dbc] py-6 text-xs text-[#757575] hover:text-[#057dbc] transition">
             {imagen ? `Portada: ${imagen.name}` : "Subir imagen de portada (PNG, JPEG o WEBP · máx. 10 MB)"}
           </button>
           <input ref={imagenRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
             onChange={(e) => setImagen(e.target.files?.[0] ?? null)} />
         </div>
 
-        <label className="flex items-start gap-3 text-xs text-slate-300 bg-slate-950 border border-slate-800 rounded-lg p-4">
+        <label className="flex items-start gap-3 text-xs text-[#404040] bg-[#f5f5f5] border border-[#d6d6d6] p-4">
           <input type="checkbox" required checked={consentimiento}
             onChange={(e) => setConsentimiento(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-emerald-500" />
+            className="mt-0.5 h-4 w-4 accent-[#057dbc]" />
           <span>
             Autorizo explícitamente la publicación de mi nombre, proyecto y portada en la revista y el Top 10
             (Habeas Data, Ley 1581 de 2012). Puedo solicitar su retirada.
           </span>
         </label>
 
-        {error && <p className="text-xs text-rose-400">{error}</p>}
+        {error && <p className="text-xs text-[#b91c1c]">{error}</p>}
 
         <button type="submit" disabled={cargando}
-          className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold py-3 rounded-lg text-sm flex items-center justify-center gap-2 transition">
+          className="w-full bg-black hover:bg-[#057dbc] disabled:opacity-50 text-white font-bold py-3 text-sm flex items-center justify-center gap-2 transition">
           {cargando && <FaSpinner className="animate-spin" />}
           {cargando ? "Publicando…" : "Publicar proyecto"}
         </button>
       </form>
 
-      <aside className="bg-slate-900 border border-slate-800 rounded-2xl p-6 h-fit">
-        <h2 className="text-sm font-bold text-slate-200 mb-4">¿Dónde se guarda?</h2>
-        <ul className="space-y-3 text-[11px] text-slate-400">
-          <li><code className="text-cyan-400">usuarios</code> — perfil creado al registrarte.</li>
-          <li><code className="text-cyan-400">diagnosticos</code> — puntaje, stack y reporte de esta publicación (privado).</li>
-          <li><code className="text-cyan-400">proyectos</code> — ficha pública con tu consentimiento.</li>
-          <li><code className="text-cyan-400">portadas</code> — bucket de Storage para la imagen.</li>
-          <li><code className="text-cyan-400">likes / calificaciones / comentarios</code> — interacciones del Top 10.</li>
+      <aside className="bg-white border border-[#d6d6d6] p-6 h-fit">
+        <h2 className="text-sm font-bold text-[#1a1a1a] mb-4">¿Dónde se guarda?</h2>
+        <ul className="space-y-3 text-[11px] text-[#757575]">
+          <li><code className="text-[#057dbc]">usuarios</code> — perfil creado al registrarte.</li>
+          <li><code className="text-[#057dbc]">diagnosticos</code> — puntaje, stack y reporte de esta publicación (privado).</li>
+          <li><code className="text-[#057dbc]">proyectos</code> — ficha pública con tu consentimiento.</li>
+          <li><code className="text-[#057dbc]">portadas</code> — bucket de Storage para la imagen.</li>
+          <li><code className="text-[#057dbc]">likes / calificaciones / comentarios</code> — interacciones del Top 10.</li>
         </ul>
-        <p className="text-[11px] text-slate-500 mt-5 leading-relaxed">
+        <p className="text-[11px] text-[#757575] mt-5 leading-relaxed">
           Para curar artículos editoriales usa el estudio con MCP; allí se escriben
-          <code className="text-cyan-400"> articulos</code> y <code className="text-cyan-400">curacion_versiones</code>.
+          <code className="text-[#057dbc]"> articulos</code> y <code className="text-[#057dbc]">curacion_versiones</code>.
         </p>
       </aside>
     </div>

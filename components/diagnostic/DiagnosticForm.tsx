@@ -9,8 +9,8 @@ import type { DiagnosticInput, DiagnosticResultData, EnglishLevel } from "@/lib/
 import DiagnosticResult from "./DiagnosticResult";
 
 const inputClass =
-  "w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none";
-const labelClass = "block text-xs font-medium text-slate-300 mb-1";
+  "w-full bg-white border border-[#d6d6d6] px-3 py-2 text-xs text-[#1a1a1a] focus:border-[#057dbc] focus:outline-none";
+const labelClass = "block text-xs font-medium text-[#404040] mb-1";
 
 const initialForm: DiagnosticInput = {
   name: "",
@@ -28,7 +28,6 @@ export default function DiagnosticForm() {
   const [result, setResult] = useState<DiagnosticResultData | null>(null);
   const score = computeScore(form.codeQuality, form.english);
 
-  // Un solo handler para todos los campos controlados
   function update<K extends keyof DiagnosticInput>(key: K, value: DiagnosticInput[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
@@ -51,11 +50,11 @@ export default function DiagnosticForm() {
 
   return (
     <>
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl mb-6">
-        <h2 className="text-xl font-bold text-cyan-400 mb-2 flex items-center gap-2">
+      <div className="bg-white border border-[#d6d6d6] p-6 mb-6">
+        <h2 className="text-xl font-bold text-[#057dbc] mb-2 flex items-center gap-2">
           <FaUserCheck /> Diagnóstico de Competitividad Junior (Valle del Cauca)
         </h2>
-        <p className="text-xs text-slate-400 mb-6">
+        <p className="text-xs text-[#757575] mb-6">
           Evalúa tu perfil y repositorio de GitHub frente a los requerimientos del mercado regional. Si superas el umbral de
           curaduría, tu proyecto ingresará automáticamente como Splash Feature en la Revista Digital.
         </p>
@@ -74,7 +73,7 @@ export default function DiagnosticForm() {
             </div>
             <div>
               <label className={labelClass} htmlFor="githubUrl">
-                URL del Repositorio de GitHub <span className="text-cyan-400">*</span>
+                URL del Repositorio de GitHub <span className="text-[#057dbc]">*</span>
               </label>
               <input id="githubUrl" type="url" required placeholder="https://github.com/usuario/proyecto-valle" className={inputClass}
                 value={form.github} onChange={(e) => update("github", e.target.value)} />
@@ -108,7 +107,7 @@ export default function DiagnosticForm() {
                 value={form.description} onChange={(e) => update("description", e.target.value)} />
             </div>
             <button type="submit"
-              className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-1.5">
+              className="w-full bg-black hover:bg-[#057dbc] text-white font-bold py-2.5 text-xs transition flex items-center justify-center gap-1.5">
               <FaSquarePollVertical /> Generar Diagnóstico & Postular a Revista
             </button>
           </div>
@@ -118,10 +117,10 @@ export default function DiagnosticForm() {
       {result && (
         <>
           <DiagnosticResult result={result} />
-          <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-white border border-[#d6d6d6] p-5 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-emerald-300">Da el siguiente paso</p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-sm font-semibold text-[#1a1a1a]">Da el siguiente paso</p>
+              <p className="text-xs text-[#757575] mt-1">
                 Publica el proyecto en el Top 10 con tu portada y tu consentimiento explícito.
               </p>
             </div>
@@ -134,7 +133,7 @@ export default function DiagnosticForm() {
                 score: String(score),
                 english: form.english,
               }).toString()}`}
-              className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-lg transition"
+              className="flex items-center gap-2 bg-black hover:bg-[#057dbc] text-white font-bold text-xs px-5 py-2.5 transition"
             >
               <FaUpload /> Publicar este proyecto
             </Link>

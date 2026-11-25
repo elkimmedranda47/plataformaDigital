@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`h-full ${inter.variable} ${playfair.variable} ${cinzel.variable}`}>
-      <body className="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-slate-950">
+      <body className="bg-white text-[#1a1a1a] font-sans min-h-screen flex flex-col antialiased selection:bg-[#057dbc] selection:text-white">
         <AuthProvider>
           <MagazineProvider>
             <Header />

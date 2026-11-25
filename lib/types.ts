@@ -33,7 +33,7 @@ export type DiagnosticResultData = DiagnosticInput & {
   approved: boolean;
 };
 
-export type MagazineView = "spread" | "grid" | "list";
+export type MagazineView = "single" | "spread" | "grid" | "list";
 
 export type ComentarioPublico = {
   id: string;
