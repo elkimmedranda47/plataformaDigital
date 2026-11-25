@@ -5,7 +5,7 @@ import { llamarToolMCP } from "@/lib/mcp-client";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 type Cuerpo = {
   github: string;

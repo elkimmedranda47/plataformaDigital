@@ -22,6 +22,46 @@ const reporteSchema = z.object({
   recomendaciones: z.array(z.string()).max(8),
 });
 
+type NivelReporte = "inicial" | "intermedio" | "avanzado";
+
+function textoReporte(valor: unknown, limite = 600): string {
+  return typeof valor === "string" ? valor.trim().slice(0, limite) : "";
+}
+
+function listaReporte(valor: unknown, limite: number): string[] {
+  if (!Array.isArray(valor)) return [];
+  return valor.map((elemento) => textoReporte(elemento, 240)).filter(Boolean).slice(0, limite);
+}
+
+function nivelDesde(valor: unknown, puntaje: number): NivelReporte {
+  const normalizado = textoReporte(valor, 40)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (/junior|inicial|basico|beginner|entry/.test(normalizado)) return "inicial";
+  if (/intermedio|intermediate|mid|media/.test(normalizado)) return "intermedio";
+  if (/avanzado|senior|advanced|expert/.test(normalizado)) return "avanzado";
+  return puntaje < 60 ? "inicial" : puntaje < 85 ? "intermedio" : "avanzado";
+}
+
+function normalizarReporte(crudo: unknown): unknown {
+  const dato = (crudo && typeof crudo === "object" ? crudo : {}) as Record<string, unknown>;
+  const valorPuntaje = Number(dato.puntaje);
+  const puntaje = Number.isFinite(valorPuntaje)
+    ? Math.max(0, Math.min(100, Math.round(valorPuntaje)))
+    : 0;
+  return {
+    ...dato,
+    puntaje,
+    nivel: nivelDesde(dato.nivel, puntaje),
+    resumen: textoReporte(dato.resumen, 1200) || "Diagnóstico generado sin resumen.",
+    tecnologias_foco: listaReporte(dato.tecnologias_foco, 6),
+    red_flags: listaReporte(dato.red_flags, 8),
+    fortalezas: listaReporte(dato.fortalezas, 6),
+    recomendaciones: listaReporte(dato.recomendaciones, 8),
+  };
+}
+
 const senalesSchema = z.object({
   repo: z.string(),
   stars: z.number(),
@@ -43,6 +83,7 @@ function systemPrompt(): string {
     "25% calidad evidenciable del perfil (README, tests, CI, licencia, actividad reciente, claridad de la descripción),",
     "20% señales de la captura y del nivel de inglés. Resta entre 3 y 10 puntos por cada red flag confirmada.",
     "Devuelve ÚNICAMENTE un objeto JSON válido con esta forma exacta:",
+    "nivel debe ser literalmente 'inicial', 'intermedio' o 'avanzado'; no uses 'junior' ni 'senior'.",
     '{"puntaje":82,"nivel":"intermedio","resumen":"string",',
     '"tecnologias_foco":["string"],"red_flags":["string"],"fortalezas":["string"],',
     '"recomendaciones":["string"]}',
@@ -154,6 +195,7 @@ export function crearServidorDiagnostico(): McpServer {
           schema: reporteSchema,
           model: MODEL,
           temperature: 0.2,
+          normalizar: normalizarReporte,
           imageDataUrls: imagen ? [imagen] : [],
         });
 

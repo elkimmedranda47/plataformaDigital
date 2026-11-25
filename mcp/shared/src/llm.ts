@@ -25,6 +25,7 @@ export async function completeJson<T>(options: {
   model?: string;
   temperature?: number;
   imageDataUrls?: string[];
+  normalizar?: (crudo: unknown) => unknown;
 }): Promise<{ data: T; meta: CompletionMeta }> {
   const parts: OpenAI.Chat.ChatCompletionContentPart[] = [
     { type: "text", text: options.user },
@@ -45,7 +46,8 @@ export async function completeJson<T>(options: {
   });
 
   const raw = response.choices[0]?.message?.content ?? "{}";
-  const data = options.schema.parse(JSON.parse(raw));
+  const crudo: unknown = JSON.parse(raw);
+  const data = options.schema.parse(options.normalizar ? options.normalizar(crudo) : crudo);
 
   return {
     data,

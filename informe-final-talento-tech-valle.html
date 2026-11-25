@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Informe final — Talento Tech Valle</title>
+<style>
+  :root {
+    --black: #000;
+    --ink: #1a1a1a;
+    --muted: #757575;
+    --blue: #057dbc;
+    --line: #d6d6d6;
+    --paper: #fff;
+    --soft: #f5f5f5;
+    --gold: #8a5a00;
+    --red: #b91c1c;
+    --green: #166534;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+  header.masthead { background: var(--black); color: #fff; padding: 28px 0 24px; margin-bottom: 28px; }
+  header.masthead .wrap { padding-bottom: 0; }
+  .kicker { color: #9a9a9a; font-size: 10px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 38px; line-height: 1.1; margin: 8px 0 10px; letter-spacing: -.02em; }
+  h2 { font-size: 20px; margin: 40px 0 14px; padding-bottom: 8px; border-bottom: 3px solid var(--black); }
+  h3 { font-size: 15px; margin: 24px 0 8px; color: var(--blue); text-transform: uppercase; letter-spacing: .04em; }
+  p { margin: 9px 0; }
+  .lead { color: #d6d6d6; max-width: 820px; font-size: 14px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .meta span { border: 1px solid #444; color: #ddd; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; padding: 4px 9px; }
+  nav.toc { border: 2px solid var(--black); padding: 16px 18px; margin-bottom: 20px; background: var(--soft); }
+  nav.toc strong { display: block; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 8px; }
+  nav.toc a { color: var(--blue); text-decoration: none; font-size: 12px; font-weight: 700; display: inline-block; margin: 3px 14px 3px 0; }
+  nav.toc a:hover { text-decoration: underline; }
+  section { border: 1px solid var(--line); border-top: 5px solid var(--black); padding: 22px 24px; margin-bottom: 18px; background: var(--paper); }
+  section:target { border-color: var(--blue); border-top-color: var(--blue); }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 12px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--soft); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; border-top: 1px solid var(--line); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; background: var(--soft); border: 1px solid var(--line); padding: 1px 5px; word-break: break-word; }
+  pre { background: var(--soft); border: 1px solid var(--line); border-left: 4px solid var(--blue); padding: 14px; overflow-x: auto; font-size: 11px; line-height: 1.55; }
+  pre code { background: none; border: 0; padding: 0; }
+  .ok, .warn, .danger, .info { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border: 1px solid; white-space: nowrap; }
+  .ok { color: var(--green); border-color: #86efac; background: #f0fdf4; }
+  .warn { color: var(--gold); border-color: #fcd34d; background: #fffbeb; }
+  .danger { color: var(--red); border-color: #fca5a5; background: #fef2f2; }
+  .info { color: var(--blue); border-color: #7dd3fc; background: #f0f9ff; }
+  .note { border-left: 4px solid var(--blue); background: #f0f9ff; padding: 10px 14px; font-size: 12px; margin: 12px 0; }
+  .caution { border-left: 4px solid var(--gold); background: #fffbeb; padding: 10px 14px; font-size: 12px; margin: 12px 0; }
+  .success { border-left: 4px solid var(--green); background: #f0fdf4; padding: 10px 14px; font-size: 12px; margin: 12px 0; }
+  ol.steps { counter-reset: paso; list-style: none; padding: 0; }
+  ol.steps li { counter-increment: paso; position: relative; padding: 12px 0 12px 48px; border-bottom: 1px solid var(--line); }
+  ol.steps li:last-child { border-bottom: 0; }
+  ol.steps li::before { content: counter(paso); position: absolute; left: 0; top: 12px; width: 30px; height: 30px; background: var(--black); color: #fff; font-weight: 800; display: grid; place-items: center; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 12px 0; }
+  .card { border: 1px solid var(--line); padding: 14px; }
+  .card strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
+  .card p { margin: 0; font-size: 12px; }
+  footer { border-top: 3px solid var(--black); margin-top: 32px; padding-top: 14px; color: var(--muted); font-size: 11px; text-align: center; }
+  @media (max-width: 760px) {
+    h1 { font-size: 28px; }
+    .wrap { padding: 0 14px 48px; }
+    section { padding: 18px 14px; }
+    table { display: block; overflow-x: auto; }
+  }
+  @media print {
+    body { font-size: 10px; }
+    header.masthead { background: #fff; color: #000; border-bottom: 3px solid #000; }
+    .kicker, .lead, footer { color: #444; }
+    section, nav.toc { border-color: #999; }
+    nav.toc { display: none; }
+    pre { background: #f5f5f5; white-space: pre-wrap; }
+  }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <div class="kicker">Talento Tech Valle · Informe técnico</div>
+    <h1>Diagnóstico, curación editorial y publicación</h1>
+    <p class="lead">Informe final de lo implementado en la plataforma: estilo visual, flujo editorial de 16 páginas, aprobación con edición, publicación controlada y diagnóstico de empleabilidad conectado a IA.</p>
+    <div class="meta">
+      <span>Fecha: 25 nov 2026</span>
+      <span>Versión: 1.0</span>
+      <span>Repo: talento-tech-valle</span>
+      <span>Estado: funcional en local</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc">
+    <strong>Contenido</strong>
+    <a href="#resumen">1. Resumen</a>
+    <a href="#estado">2. Estado funcional</a>
+    <a href="#diagnostico">3. Flujo del diagnóstico</a>
+    <a href="#valle">4. Base de “Valle del Cauca”</a>
+    <a href="#error">5. Error corregido</a>
+    <a href="#editorial">6. Flujo editorial</a>
+    <a href="#apikey">7. API key</a>
+    <a href="#pendientes">8. Pendientes</a>
+    <a href="#verificacion">9. Verificación</a>
+  </nav>
+
+  <section id="resumen">
+    <h2>1. Resumen ejecutivo</h2>
+    <p>La plataforma quedó con dos flujos principales claramente separados: el <strong>flujo editorial</strong>, que cura documentos y publica una revista de exactamente 16 páginas, y el <strong>flujo de diagnóstico</strong>, que analiza un perfil con IA y puede postular proyectos al Top 10.</p>
+    <div class="grid">
+      <div class="card"><strong>Editorial</strong><p>Curación MCP/Gemini a 16 páginas, edición antes de aprobar y publicación explícita.</p></div>
+      <div class="card"><strong>Diagnóstico</strong><p>Formulario real conectado al MCP, GitHub, demanda regional y Gemini.</p></div>
+      <div class="card"><strong>Interfaz</strong><p>Estilo WIRED aplicado en todo el proyecto: blanco, negro, azul, bordes rectos.</p></div>
+      <div class="card"><strong>Validación</strong><p><code>tsc</code>, <code>lint</code>, <code>build</code>, health MCP y pruebas funcionales OK.</p></div>
+    </div>
+    <div class="success">El diagnóstico ya no se queda en scoring local: usa el endpoint real, guarda el reporte en Supabase y muestra fortalezas, red flags, tecnologías a fortalecer y recomendaciones.</div>
+  </section>
+
+  <section id="estado">
+    <h2>2. Estado funcional</h2>
+    <table>
+      <thead><tr><th>Función</th><th>Estado</th><th>Evidencia</th></tr></thead>
+      <tbody>
+        <tr><td>Revista WIRED de 16 páginas</td><td><span class="ok">OK</span></td><td>Navegación por clic, teclado y swipe; 15 marcadores <code>[[PAGINA]]</code>.</td></tr>
+        <tr><td>Curación de ODT/DOCX/MD</td><td><span class="ok">OK</span></td><td>Prueba con 20 páginas y con ODT real: ambas terminaron en 16 publicadas.</td></tr>
+        <tr><td>Aprobar con edición</td><td><span class="ok">OK</span></td><td>Modal para título, resumen, tags, portada y Markdown; guarda en la versión.</td></tr>
+        <tr><td>Publicar editorial</td><td><span class="ok">OK</span></td><td>Solo <code>Publicar en revista</code> cambia el estado a <code>publicado</code>.</td></tr>
+        <tr><td>Diagnóstico con IA</td><td><span class="ok">OK</span></td><td>MCP en <code>:3002/mcp</code>, prueba real con score 85 y señales de GitHub.</td></tr>
+        <tr><td>Normalización del reporte</td><td><span class="ok">OK</span></td><td><code>junior</code> se convierte en <code>inicial</code> antes de validar con Zod.</td></tr>
+        <tr><td>Google AI Studio</td><td><span class="info">1 key</span></td><td>La misma key alimenta curación y diagnóstico; no hace falta otra.</td></tr>
+        <tr><td>Deploy público</td><td><span class="warn">Pendiente</span></td><td>Los MCP locales no funcionarían tal cual en Vercel.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="diagnostico">
+    <h2>3. Flujo del diagnóstico</h2>
+    <p>El formulario <strong>Diagnóstico de Competitividad Junior (Valle del Cauca)</strong> hace este recorrido:</p>
+    <ol class="steps">
+      <li><strong>Entrada del estudiante.</strong> <code>/diagnostico</code> valida nombre, título del proyecto, URL de GitHub, nivel de inglés, stack, descripción de al menos 20 caracteres, captura opcional y consentimiento de publicación.</li>
+      <li><strong>Petición autenticada.</strong> El cliente envía <code>POST /api/diagnostic/analyze</code>. El BFF ejecuta <code>requireUser()</code>; sin sesión responde 401 y la UI muestra enlace a <code>/acceso</code>.</li>
+      <li><strong>Captura.</strong> Si hay imagen, se sube al bucket <code>capturas</code> de Supabase y se pasa una URL firmada de corta duración al MCP.</li>
+      <li><strong>Herramienta MCP.</strong> El BFF invoca <code>analizar_empleabilidad</code> en <code>http://localhost:3002/mcp</code> mediante <code>lib/mcp-client.ts</code>.</li>
+      <li><strong>Contexto objetivo.</strong> El MCP consulta señales públicas de GitHub (stars, forks, README, tests, CI, licencia, último push, lenguajes) y el catálogo <code>DEMANDA_VALLE</code>.</li>
+      <li><strong>IA y normalización.</strong> Gemini responde JSON; <code>normalizarReporte()</code> corrige alias y límites antes de que Zod valide el esquema.</li>
+      <li><strong>Persistencia.</strong> El BFF inserta el reporte en <code>diagnosticos</code>. Si <code>postulable_top10</code> es <code>true</code> y hay consentimiento, crea el registro en <code>proyectos</code> para el Top 10.</li>
+      <li><strong>Resultado.</strong> La UI muestra puntaje, nivel, resumen, fortalezas, tecnologías a fortalecer, red flags, recomendaciones y señales de GitHub. Si aplica, <code>publishSplash</code> actualiza la página 5 de la revista local.</li>
+    </ol>
+    <pre><code>/diagnostico
+  -> POST /api/diagnostic/analyze (sesion + captura opcional)
+     -> MCP diagnostico :3002/mcp
+        -> GitHub: senales objetivas del repo
+        -> demanda.ts: catalogo DEMANDA_VALLE
+        -> Gemini: JSON del reporte
+        -> normalizarReporte + Zod
+     -> INSERT diagnosticos
+     -> INSERT proyectos si postulable_top10 y hay consentimiento
+  -> UI: reporte real + splash en pagina 5</code></pre>
+  </section>
+
+  <section id="valle">
+    <h2>4. ¿En qué se basa para nombrar “Valle del Cauca”?</h2>
+    <p>El diagnóstico no inventa la región ni la consulta en tiempo real. La mención aparece por dos decisiones explícitas en el código:</p>
+    <table>
+      <thead><tr><th>Origen</th><th>Ubicación</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td>Persona del agente</td><td><code>mcp/diagnostic/src/index.ts:81</code></td><td>Define al modelo como Career Advisor para estudiantes que buscan su primer empleo en el Valle del Cauca.</td></tr>
+        <tr><td>Catálogo regional</td><td><code>mcp/diagnostic/src/demanda.ts:8</code></td><td>Constante <code>DEMANDA_VALLE</code> con 14 tecnologías, peso de demanda, tendencia y salario de referencia.</td></tr>
+        <tr><td>Parámetro región</td><td><code>mcp/diagnostic/src/index.ts:123</code></td><td>El tool <code>demanda_mercado</code> usa <code>region="valle"</code> por defecto.</td></tr>
+        <tr><td>Calibración del puntaje</td><td><code>mcp/diagnostic/src/index.ts:82-84</code></td><td>55% cobertura del stack frente a la demanda regional, 25% calidad evidenciable y 20% captura/inglés.</td></tr>
+      </tbody>
+    </table>
+    <h3>Tecnologías del catálogo usado</h3>
+    <table>
+      <thead><tr><th>Tecnología</th><th>Demanda</th><th>Tendencia</th><th>Salario ref. USD</th></tr></thead>
+      <tbody>
+        <tr><td>TypeScript</td><td>92</td><td>alta</td><td>1300</td></tr>
+        <tr><td>React</td><td>88</td><td>alta</td><td>1200</td></tr>
+        <tr><td>Node.js</td><td>84</td><td>alta</td><td>1150</td></tr>
+        <tr><td>SQL / PostgreSQL</td><td>81</td><td>alta</td><td>1100</td></tr>
+        <tr><td>Python</td><td>79</td><td>alta</td><td>1150</td></tr>
+        <tr><td>Docker</td><td>72</td><td>media</td><td>1250</td></tr>
+        <tr><td>Git / CI-CD</td><td>70</td><td>media</td><td>1050</td></tr>
+        <tr><td>Testing automatizado</td><td>66</td><td>media</td><td>1200</td></tr>
+        <tr><td>Next.js</td><td>63</td><td>media</td><td>1250</td></tr>
+        <tr><td>AWS / GCP</td><td>61</td><td>media</td><td>1450</td></tr>
+        <tr><td>Inglés técnico B2+</td><td>74</td><td>alta</td><td>1400</td></tr>
+        <tr><td>Java / Spring</td><td>48</td><td>media</td><td>1200</td></tr>
+        <tr><td>Go</td><td>35</td><td>baja</td><td>1500</td></tr>
+        <tr><td>GraphQL</td><td>29</td><td>baja</td><td>1300</td></tr>
+      </tbody>
+    </table>
+    <div class="caution"><strong>Importante:</strong> <code>obtenerDemanda(_region = "valle")</code> ignora el argumento y siempre devuelve <code>DEMANDA_VALLE</code>. Es un catálogo versionado en código, no un scraping de convocatorias reales ni una estadística oficial. Los salarios son valores de referencia para calibrar al modelo.</div>
+  </section>
+
+  <section id="error">
+    <h2>5. Error corregido: nivel “junior”</h2>
+    <p><strong>Síntoma:</strong> el modelo devolvió <code>"nivel": "junior"</code>, pero el esquema del tool solo aceptaba <code>inicial</code>, <code>intermedio</code> o <code>avanzado</code>. Zod rechazó la respuesta con <code>invalid_enum_value</code>.</p>
+    <p><strong>Solución:</strong></p>
+    <ul>
+      <li>Se añadió <code>normalizar()</code> en <code>mcp/shared/src/llm.ts</code>, aplicada antes de validar con Zod.</li>
+      <li>Se creó <code>normalizarReporte()</code> en <code>mcp/diagnostic/src/index.ts</code>.</li>
+      <li>Alias mapeados: <code>junior/inicial/básico/beginner/entry → inicial</code>, <code>intermedio/mid → intermedio</code>, <code>senior/avanzado/expert → avanzado</code>.</li>
+      <li>Si el valor no es reconocido, se infiere del puntaje: menor a 60 inicial, 60-84 intermedio, 85 o más avanzado.</li>
+      <li>También se limitan arrays y textos para que una respuesta larga del modelo no rompa el esquema.</li>
+      <li>El prompt ahora pide literalmente <code>inicial</code>, <code>intermedio</code> o <code>avanzado</code>.</li>
+    </ul>
+    <div class="success">Prueba posterior: diagnóstico real completado con <code>nivel: intermedio</code>, <code>puntaje: 85</code>, <code>postulable_top10: true</code> y señales de GitHub obtenidas correctamente.</div>
+  </section>
+
+  <section id="editorial">
+    <h2>6. Flujo editorial y estados</h2>
+    <table>
+      <thead><tr><th>Acción</th><th>Qué hace</th><th>Qué no hace</th></tr></thead>
+      <tbody>
+        <tr><td>Editar y aprobar</td><td>Abre modal, guarda título, resumen, tags, portada y contenido en la versión; deja el artículo en <code>aprobado</code>.</td><td>No cambia <code>estado</code> a <code>publicado</code> ni escribe <code>published_at</code>.</td></tr>
+        <tr><td>Publicar en revista</td><td>Copia la versión activa al artículo, pone <code>estado='publicado'</code> y escribe <code>published_at</code>.</td><td>No elimina automáticamente otra editorial publicada.</td></tr>
+        <tr><td>Publicar segunda editorial</td><td>Ambos artículos quedan publicados; el visor toma el más reciente por <code>published_at desc</code>.</td><td>No despublica al anterior; hay que usar <code>Quitar de revista</code> si se desea.</td></tr>
+      </tbody>
+    </table>
+    <h3>Comportamiento con documentos largos</h3>
+    <p>Si el documento trae 24 páginas con hojas en blanco, el extractor descarta los fragmentos vacíos. El curador fuerza exactamente 16 páginas y el prompt pide comprimir sin perder secciones clave. Las tablas se extraen como texto: su información se conserva en la medida en que entra al prompt, pero el formato visual puede aplanarse. El contenido enviado al modelo se corta en 24.000 caracteres, por lo que conviene revisar tablas críticas en el modal <code>Editar y aprobar</code>.</p>
+  </section>
+
+  <section id="apikey">
+    <h2>7. API key de Google AI Studio</h2>
+    <p><strong>No hace falta crear otra API key</strong> para el diagnóstico. La plataforma usa una sola key en <code>OPENAI_API_KEY</code> con <code>OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/</code>. Tanto <code>mcp/curation</code> como <code>mcp/diagnostic</code> llaman a Gemini a través de esa configuración.</p>
+    <p>Puedes crear una segunda key solo si quieres separar cuotas, presupuesto o permisos por agente. En ese caso, define una variable adicional para diagnóstico y cámbiala en <code>mcp/shared/src/llm.ts</code>; después reinicia ambos MCP y el servidor Next.</p>
+    <div class="note"><strong>Si rotas la key:</strong> actualiza <code>.env.local</code>, reinicia los MCP y reinicia <code>npm run dev</code>. No se debe imprimir ni commitear la key.</div>
+  </section>
+
+  <section id="pendientes">
+    <h2>8. Pendientes y recomendaciones</h2>
+    <ul>
+      <li>Rotar la service role key antigua y cualquier key de Gemini que haya quedado expuesta.</li>
+      <li>Para deploy público, migrar los MCP de <code>localhost</code> a servicios accesibles y configurar <code>MCP_CURACION_URL</code> y <code>MCP_DIAGNOSTICO_URL</code>.</li>
+      <li>Actualizar <code>DEMANDA_VALLE</code> con una fuente periódica si se quiere que el diagnóstico refleje convocatorias reales.</li>
+      <li>Probar RLS con dos usuarios para confirmar que un estudiante no ve diagnósticos ajenos.</li>
+      <li>Si se desea una sola editorial visible, hacer que <code>Publicar</code> marque la anterior como <code>aprobado</code> antes de publicar la nueva.</li>
+    </ul>
+  </section>
+
+  <section id="verificacion">
+    <h2>9. Verificación realizada</h2>
+    <table>
+      <thead><tr><th>Comando / prueba</th><th>Resultado</th></tr></thead>
+      <tbody>
+        <tr><td><code>npx tsc --noEmit</code></td><td><span class="ok">OK</span></td></tr>
+        <tr><td><code>npm run lint</code></td><td><span class="ok">OK</span> sin warnings</td></tr>
+        <tr><td><code>npx tsc --noEmit -p mcp/diagnostic/tsconfig.json</code></td><td><span class="ok">OK</span></td></tr>
+        <tr><td><code>NEXT_FONT_GOOGLE_MOCKED_RESPONSES=... npm run build</code></td><td><span class="ok">OK</span></td></tr>
+        <tr><td><code>curl http://localhost:3002/healthz</code></td><td><span class="ok">OK</span> <code>{"ok":true,"server":"mcp-diagnostico"}</code></td></tr>
+        <tr><td>Prueba MCP <code>analizar_empleabilidad</code></td><td><span class="ok">OK</span> score 85, modelo <code>gemini-3.5-flash-lite</code></td></tr>
+        <tr><td>UI <code>/diagnostico</code> sin sesión</td><td><span class="ok">OK</span> error 401 controlado con enlace a acceso</td></tr>
+      </tbody>
+    </table>
+    <div class="success">Servidor Next reiniciado después del build para evitar artefactos mezclados de <code>.next</code>. El MCP de diagnóstico quedó activo en <code>:3002</code>.</div>
+  </section>
+
+  <footer>Informe generado para Talento Tech Valle · 25 de noviembre de 2026 · Estado: diagnóstico y curación funcionales en entorno local.</footer>
+</div>
+</body>
+</html>

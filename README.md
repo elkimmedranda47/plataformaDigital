@@ -49,8 +49,8 @@ las páginas son Server Components y solo lo interactivo lleva `"use client"`.
 | `magazinePages` (variable global mutable) | `useState` dentro de `MagazineProvider` (Context) |
 | `currentSpreadIndex` + `renderSpread()` | `useState(spreadIndex)`; la doble página se **deriva** al renderizar |
 | `classList.add/remove('hidden')` y `className = ...` | renderizado condicional `{view === "grid" && ...}` y clases según estado |
-| `getElementById(...).value` en `runDiagnostic` | formulario controlado (`value` + `onChange`) |
-| `innerHTML = ...` del resultado | `useState(result)` + `<DiagnosticResult />` |
+| `getElementById(...).value` en `runDiagnostic` | formulario controlado que envía `POST /api/diagnostic/analyze` |
+| `innerHTML = ...` del resultado | `useState(resultado)` + reporte MCP: `puntaje`, `nivel`, fortalezas, red flags y recomendaciones |
 | `renderFlatPlanGrid()` / `renderCurationTable()` | `pages.map(...)` en JSX, se actualizan solos |
 | `disabled` seteado a mano en los botones | `disabled={spreadIndex === 0}` |
 
@@ -59,8 +59,8 @@ No hizo falta `useEffect`: no hay efectos secundarios reales (todo se deriva del
 
 ## Notas
 
-- Al aprobar el diagnóstico, `publishSplash` actualiza la página 5 y la revista lo refleja al navegar (el estado vive en el layout, así que sobrevive al cambio de ruta). Se pierde al recargar el navegador: el siguiente paso natural es persistirlo en una base de datos.
-- Habeas Data (Ley 1581): antes de publicar proyectos reales, agrega un checkbox de autorización explícita en el formulario.
+- Al aprobar el diagnóstico con IA, se guarda en `diagnosticos` y `publishSplash` actualiza la página 5 de la revista local; este splash se pierde al recargar, pero el reporte persiste en Supabase.
+- Habeas Data (Ley 1581): el formulario incluye un checkbox de autorización explícita; solo se crea el proyecto en el Top 10 si el reporte es postulable y el estudiante autoriza.
 
 ## Arquitectura MCP (nueva capa)
 
@@ -80,7 +80,7 @@ El prototipo convive con la arquitectura de producción documentada en:
 Rutas nuevas:
 
 - `/top10` — feed público del Top 10 semanal. Like, estrellas y comentarios requieren sesión.
-- `/publicar` — alta de emprendimiento con portada, diagnóstico local y consentimiento explícito.
+- `/publicar` — alta de emprendimiento con portada, consentimiento explícito y continuación desde el diagnóstico con IA.
 - `/acceso` — registro e inicio de sesión con email/contraseña de Supabase Auth.
 - `/editor` — curación editorial con MCP; al aprobar una versión se puede publicar en la revista.
 
@@ -108,3 +108,13 @@ cd mcp/diagnostic && npm install && npm run dev # MCP diagnóstico en :3002/mcp
 ```
 
 Aplica `supabase/migrations/0001_initial_schema.sql` y `0002_auth_publicacion.sql` con `supabase db push` o pegando ambos SQL en el SQL Editor de Supabase. Para probar la publicación solo necesitas Supabase; el MCP y `OPENAI_API_KEY` son necesarios únicamente para la curación editorial y el diagnóstico con IA.
+
+### Flujo del diagnóstico con IA
+
+1. `/diagnostico` valida nombre, GitHub, stack, descripción, captura opcional y autorización de publicación.
+2. `POST /api/diagnostic/analyze` exige sesión, sube la captura al bucket `capturas` y llama al tool `analizar_empleabilidad` del MCP de diagnóstico.
+3. `mcp/diagnostic` combina señales públicas de GitHub, demanda tecnológica del Valle y el contexto del estudiante; Gemini devuelve un JSON que se normaliza antes de validarlo (por ejemplo, `junior` se convierte en `inicial`).
+4. El BFF guarda el reporte en `diagnosticos`; si `postulable_top10` es `true` y hay consentimiento, crea el proyecto en el Top 10.
+5. La UI muestra el reporte y, cuando aplica, actualiza la página 5 de la revista local.
+
+Curación y diagnóstico comparten la misma `OPENAI_API_KEY` apuntando a Gemini mediante `OPENAI_BASE_URL`. No hace falta una segunda key de AI Studio salvo que quieras separar cuotas o permisos por agente.
