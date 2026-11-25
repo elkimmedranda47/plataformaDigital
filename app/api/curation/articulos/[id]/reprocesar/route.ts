@@ -4,7 +4,7 @@ import { llamarToolMCP } from "@/lib/mcp-client";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 function mimePorNombre(nombre: string): string {
   if (/\.odt$/i.test(nombre)) return "application/vnd.oasis.opendocument.text";

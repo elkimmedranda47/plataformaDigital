@@ -29,6 +29,7 @@ export const CurarToolResponseSchema = z.object({
   ),
   texto_extraido: z.string(),
   paginas_originales: z.number().int().optional(),
+  paginas_publicadas: z.number().int().optional(),
   imagenes_extraidas: z.array(z.object({ nombre: z.string(), dataUrl: z.string() })),
   modelo: z.string(),
   prompt_version: z.string(),

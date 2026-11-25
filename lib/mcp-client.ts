@@ -11,6 +11,9 @@ type Conexion = {
 
 const pool = new Map<ServidorMCP, Promise<Conexion>>();
 
+const TIMEOUT_CONEXION_MS = 30_000;
+const TIMEOUT_TOOL_MS = 240_000;
+
 function urlDelServidor(servidor: ServidorMCP): string {
   const url =
     servidor === "curacion" ? process.env.MCP_CURACION_URL : process.env.MCP_DIAGNOSTICO_URL;
@@ -24,7 +27,7 @@ async function conectar(servidor: ServidorMCP): Promise<Conexion> {
     { name: "talento-tech-valle-bff", version: "1.0.0" },
     { capabilities: {} },
   );
-  await client.connect(transport);
+  await client.connect(transport, { timeout: TIMEOUT_CONEXION_MS });
   return { client, transport };
 }
 
@@ -54,10 +57,14 @@ export async function llamarToolMCP<T>(opciones: {
   for (let intento = 0; intento < 2; intento++) {
     try {
       const { client } = await obtenerConexion(opciones.servidor);
-      const resultado = await client.callTool({
-        name: opciones.nombre,
-        arguments: opciones.argumentos,
-      });
+      const resultado = await client.callTool(
+        {
+          name: opciones.nombre,
+          arguments: opciones.argumentos,
+        },
+        undefined,
+        { timeout: TIMEOUT_TOOL_MS, maxTotalTimeout: TIMEOUT_TOOL_MS },
+      );
 
       if ((resultado as { isError?: boolean }).isError) {
         throw new Error(textoDelResultado(resultado) || "El tool MCP devolvió un error");
@@ -68,7 +75,8 @@ export async function llamarToolMCP<T>(opciones: {
       return opciones.schema.parse(crudo);
     } catch (error) {
       pool.delete(opciones.servidor);
-      if (intento === 1) throw error;
+      const esTimeout = error instanceof Error && /-32001|Request timed out/i.test(error.message);
+      if (intento === 1 || esTimeout) throw error;
     }
   }
   throw new Error("No se pudo invocar el tool MCP");

@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaBookOpen, FaCheck, FaCodeBranch, FaEyeSlash, FaRegStar, FaRotate, FaTrash } from "react-icons/fa6";
+import { FaBookOpen, FaCheck, FaCodeBranch, FaEyeSlash, FaImage, FaPen, FaRegStar, FaRotate, FaTrash, FaXmark } from "react-icons/fa6";
 import type { CuracionVersion } from "@/lib/api-types";
 
 type LineaDiff = { tipo: "igual" | "add" | "del"; texto: string };
+
+type FormaEdicion = {
+  titulo_curado: string;
+  resumen: string;
+  contenido_curado_md: string;
+  tags: string;
+  imagen_portada_sugerida: string;
+  imagen: File | null;
+};
 
 function diffLineas(a: string, b: string): LineaDiff[] {
   const A = a.split("\n");
@@ -52,6 +61,8 @@ export default function CurationHistory({ articuloId, versionesIniciales, onElim
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [estadoArticulo, setEstadoArticulo] = useState<string | null>(null);
+  const [editando, setEditando] = useState<CuracionVersion | null>(null);
+  const [formaEdicion, setFormaEdicion] = useState<FormaEdicion | null>(null);
 
   useEffect(() => {
     setVersiones(versionesIniciales);
@@ -89,7 +100,7 @@ export default function CurationHistory({ articuloId, versionesIniciales, onElim
       const respuesta = await fetch("/api/curation/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ articuloId, variantes: 2 }),
+        body: JSON.stringify({ articuloId, variantes: 1 }),
       });
       const cuerpo = await respuesta.json();
       if (!respuesta.ok) throw new Error(cuerpo.error ?? "No se pudieron generar versiones");
@@ -128,6 +139,72 @@ export default function CurationHistory({ articuloId, versionesIniciales, onElim
     setDiff(diffLineas(izquierda.contenido_curado_md, derecha.contenido_curado_md));
   }
 
+  function abrirEdicion(version: CuracionVersion) {
+    setMensaje(null);
+    setEditando(version);
+    setFormaEdicion({
+      titulo_curado: version.titulo_curado,
+      resumen: version.resumen,
+      contenido_curado_md: version.contenido_curado_md,
+      tags: version.tags.join(", "),
+      imagen_portada_sugerida: version.imagen_portada_sugerida ?? "",
+      imagen: null,
+    });
+  }
+
+  function actualizarFormaEdicion(cambios: Partial<FormaEdicion>) {
+    setFormaEdicion((prev) => (prev ? { ...prev, ...cambios } : prev));
+  }
+
+  async function guardarYAprobar() {
+    if (!editando || !formaEdicion) return;
+    setCargando(true);
+    setMensaje(null);
+    try {
+      const datos = new FormData();
+      datos.append("titulo_curado", formaEdicion.titulo_curado);
+      datos.append("resumen", formaEdicion.resumen);
+      datos.append("contenido_curado_md", formaEdicion.contenido_curado_md);
+      datos.append(
+        "tags",
+        JSON.stringify(
+          formaEdicion.tags
+            .split(",")
+            .map((tag) => tag.trim().toLowerCase())
+            .filter(Boolean),
+        ),
+      );
+      datos.append("imagen_portada_sugerida", formaEdicion.imagen_portada_sugerida);
+      if (formaEdicion.imagen) datos.append("imagen", formaEdicion.imagen);
+
+      const respuestaEdicion = await fetch(`/api/curation/versions/${editando.id}`, {
+        method: "PATCH",
+        body: datos,
+      });
+      const cuerpoEdicion = await respuestaEdicion.json();
+      if (!respuestaEdicion.ok) throw new Error(cuerpoEdicion.error ?? "No se pudo guardar la edición");
+      const versionGuardada = cuerpoEdicion.version as CuracionVersion;
+
+      const respuestaAprobacion = await fetch(`/api/curation/versions/${versionGuardada.id}/select`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicar: false }),
+      });
+      const cuerpoAprobacion = await respuestaAprobacion.json();
+      if (!respuestaAprobacion.ok) throw new Error(cuerpoAprobacion.error ?? "No se pudo aprobar");
+
+      setActiva(versionGuardada.id);
+      setEditando(null);
+      setFormaEdicion(null);
+      await recargar();
+      setMensaje(`Versión ${versionGuardada.numero} editada y aprobada; pendiente de publicación`);
+    } catch (e) {
+      setMensaje(e instanceof Error ? e.message : "Error inesperado");
+    } finally {
+      setCargando(false);
+    }
+  }
+
   async function aprobar(version: CuracionVersion, publicar: boolean) {
     setCargando(true);
     try {
@@ -139,6 +216,7 @@ export default function CurationHistory({ articuloId, versionesIniciales, onElim
       const cuerpo = await respuesta.json();
       if (!respuesta.ok) throw new Error(cuerpo.error ?? "No se pudo aprobar");
       setActiva(version.id);
+      await recargar();
       setMensaje(
         publicar
           ? `Versión ${version.numero} publicada en la revista`
@@ -264,6 +342,11 @@ export default function CurationHistory({ articuloId, versionesIniciales, onElim
               <div>
                 <p className="text-sm font-semibold text-slate-100">
                   v{version.numero} · {version.titulo_curado}
+                  {activa === version.id && (
+                    <span className="ml-2 text-[9px] font-black uppercase bg-cyan-500 text-slate-950 px-2 py-0.5">
+                      Aprobada
+                    </span>
+                  )}
                 </p>
                 <p className="text-[10px] text-slate-500 mt-1">
                   {version.modelo} · confianza {version.confianza?.toFixed(2) ?? "—"} ·{" "}
@@ -272,11 +355,11 @@ export default function CurationHistory({ articuloId, versionesIniciales, onElim
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1.5">
                 <button
-                  onClick={() => aprobar(version, false)}
-                  disabled={cargando || activa === version.id}
+                  onClick={() => abrirEdicion(version)}
+                  disabled={cargando}
                   className="text-[11px] bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
                 >
-                  <FaCheck /> {activa === version.id ? "Aprobada" : "Aprobar"}
+                  <FaPen /> {activa === version.id ? "Editar y aprobar de nuevo" : "Editar y aprobar"}
                 </button>
                 <button
                   onClick={() => aprobar(version, true)}
@@ -338,6 +421,144 @@ export default function CurationHistory({ articuloId, versionesIniciales, onElim
                 {linea.texto}
               </p>
             ))}
+          </div>
+        </div>
+      )}
+
+      {editando && formaEdicion && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center p-4"
+          onClick={() => {
+            setEditando(null);
+            setFormaEdicion(null);
+          }}
+        >
+          <div
+            className="w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-white border-2 border-black"
+            onClick={(evento) => evento.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-black text-white px-5 py-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-1">Edición editorial</p>
+                <h3 className="text-sm font-black">Versión {editando.numero} · antes de aprobar</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setEditando(null);
+                  setFormaEdicion(null);
+                }}
+                className="text-neutral-300 hover:text-white"
+                aria-label="Cerrar edición"
+              >
+                <FaXmark />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <p className="text-[11px] text-[#757575] border-l-4 border-[#057dbc] bg-[#f5f5f5] px-3 py-2">
+                Guardaremos estos cambios en la versión y la dejaremos <strong>aprobada</strong>. No se publicará hasta que pulses <strong>Publicar en revista</strong>.
+              </p>
+
+              <div>
+                <label className="block text-xs font-bold text-[#404040] mb-1" htmlFor="editTitulo">Título curado</label>
+                <input
+                  id="editTitulo"
+                  value={formaEdicion.titulo_curado}
+                  onChange={(e) => actualizarFormaEdicion({ titulo_curado: e.target.value })}
+                  className="w-full bg-white border border-[#d6d6d6] px-3 py-2 text-sm text-[#1a1a1a] focus:border-[#057dbc] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#404040] mb-1" htmlFor="editResumen">Resumen</label>
+                <textarea
+                  id="editResumen"
+                  rows={3}
+                  maxLength={600}
+                  value={formaEdicion.resumen}
+                  onChange={(e) => actualizarFormaEdicion({ resumen: e.target.value })}
+                  className="w-full bg-white border border-[#d6d6d6] px-3 py-2 text-sm text-[#1a1a1a] focus:border-[#057dbc] focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#404040] mb-1" htmlFor="editTags">Tags (separados por comas)</label>
+                  <input
+                    id="editTags"
+                    value={formaEdicion.tags}
+                    onChange={(e) => actualizarFormaEdicion({ tags: e.target.value })}
+                    className="w-full bg-white border border-[#d6d6d6] px-3 py-2 text-sm text-[#1a1a1a] focus:border-[#057dbc] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#404040] mb-1" htmlFor="editPortadaUrl">URL de portada</label>
+                  <input
+                    id="editPortadaUrl"
+                    value={formaEdicion.imagen_portada_sugerida}
+                    onChange={(e) => actualizarFormaEdicion({ imagen_portada_sugerida: e.target.value })}
+                    placeholder="https://…"
+                    className="w-full bg-white border border-[#d6d6d6] px-3 py-2 text-sm text-[#1a1a1a] focus:border-[#057dbc] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-xs font-bold text-[#404040] mb-2" htmlFor="editImagen">
+                  <FaImage /> Subir nueva portada (PNG, JPEG o WEBP · máx. 10 MB)
+                </label>
+                <input
+                  id="editImagen"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(e) => actualizarFormaEdicion({ imagen: e.target.files?.[0] ?? null })}
+                  className="w-full text-xs text-[#757575]"
+                />
+                {formaEdicion.imagen && (
+                  <p className="text-[11px] text-[#057dbc] mt-1">Archivo seleccionado: {formaEdicion.imagen.name}</p>
+                )}
+                {!formaEdicion.imagen && /^(https?:|data:)/.test(formaEdicion.imagen_portada_sugerida) && (
+                  <div
+                    className="h-28 w-full bg-cover bg-center border border-[#d6d6d6] mt-2"
+                    style={{ backgroundImage: `url("${formaEdicion.imagen_portada_sugerida}")` }}
+                    aria-label="Portada actual"
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#404040] mb-1" htmlFor="editContenido">Contenido Markdown (16 páginas)</label>
+                <textarea
+                  id="editContenido"
+                  rows={16}
+                  value={formaEdicion.contenido_curado_md}
+                  onChange={(e) => actualizarFormaEdicion({ contenido_curado_md: e.target.value })}
+                  className="w-full bg-white border border-[#d6d6d6] px-3 py-2 font-mono text-[11px] text-[#1a1a1a] focus:border-[#057dbc] focus:outline-none"
+                />
+                <p className="text-[10px] text-[#757575] mt-1">
+                  Conserva el marcador <code className="text-[#057dbc]">[[PAGINA]]</code> entre páginas para que el visor respete las 16.
+                </p>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 flex flex-wrap justify-end gap-2 bg-[#f5f5f5] border-t border-[#d6d6d6] px-5 py-3">
+              <button
+                onClick={() => {
+                  setEditando(null);
+                  setFormaEdicion(null);
+                }}
+                className="text-[11px] font-bold bg-white hover:bg-[#e5e5e5] text-[#1a1a1a] px-4 py-2 border border-[#d6d6d6]"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => void guardarYAprobar()}
+                disabled={cargando}
+                className="flex items-center gap-1.5 text-[11px] font-bold bg-black hover:bg-[#057dbc] disabled:opacity-50 text-white px-4 py-2"
+              >
+                <FaCheck /> {cargando ? "Guardando…" : "Guardar y aprobar"}
+              </button>
+            </div>
           </div>
         </div>
       )}

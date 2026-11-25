@@ -16,7 +16,7 @@ export default function DocumentUploader({ onCreado }: Props) {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [imagenes, setImagenes] = useState<File[]>([]);
   const [titulo, setTitulo] = useState("");
-  const [variantes, setVariantes] = useState(3);
+  const [variantes, setVariantes] = useState(1);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [arrastrando, setArrastrando] = useState(false);
@@ -72,8 +72,8 @@ export default function DocumentUploader({ onCreado }: Props) {
         <FaCloudArrowUp /> Nueva curación editorial
       </h2>
       <p className="text-xs text-slate-400 mb-6">
-        Sube un documento Word, OpenDocument o Markdown. El MCP de Curación extraerá el contenido y
-        generará versiones para tu aprobación.
+        Sube un documento Word, OpenDocument o Markdown. El MCP de Curación comprimirá el contenido a
+        las 16 páginas de la revista y generará versiones para tu aprobación.
       </p>
 
       <form onSubmit={enviar} className="space-y-5">

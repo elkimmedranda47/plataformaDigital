@@ -5,7 +5,7 @@ import { llamarToolMCP } from "@/lib/mcp-client";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       nombre: "curar_contenido",
       argumentos: {
         archivo_url: firmada.signedUrl,
-        variantes: Math.min(5, Math.max(1, Number(variantes ?? 3))),
+        variantes: Math.min(5, Math.max(1, Number(variantes ?? 1))),
         image_urls: urlsImagenes.filter(Boolean),
         tags_actuales: (tagsPrevios?.[0]?.tags as string[]) ?? [],
       },

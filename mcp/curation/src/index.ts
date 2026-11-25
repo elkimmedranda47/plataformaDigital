@@ -8,7 +8,8 @@ import { completeJson } from "../../shared/src/llm";
 import { extraerDocumento, dividirEnPaginas, MARCADOR_PAGINA } from "../../shared/src/extract";
 import { descargarArchivo } from "../../shared/src/http";
 
-const PROMPT_VERSION = "curacion-v1.1-paginado";
+const PROMPT_VERSION = "curacion-v1.2-16paginas";
+const PAGINAS_REVISTA = 16;
 const MODEL = process.env.CURACION_MODEL ?? "gpt-4o-mini";
 
 const enfoques = [
@@ -37,6 +38,7 @@ const curacionOutputSchema = z.object({
   versiones: z.array(versionSchema.extend({ numero: z.number().int().positive() })),
   texto_extraido: z.string(),
   paginas_originales: z.number().int(),
+  paginas_publicadas: z.number().int(),
   imagenes_extraidas: z.array(z.object({ nombre: z.string(), dataUrl: z.string() })),
   modelo: z.string(),
   prompt_version: z.string(),
@@ -83,8 +85,10 @@ function systemPrompt(): string {
     '"tags":["string"],"paginas_curadas":["string"],"indice_imagen_portada":number|null,',
     '"sugerencia_portada":"string|null","confianza":número entre 0 y 1}',
     `El texto original trae ${MARCADOR_PAGINA} entre páginas. Conserva exactamente ese marcador`,
-    "en contenido_curado_md entre cada página curada. La página 1 es la portada del documento.",
-    "paginas_curadas debe tener un string por página del documento, sin marcadores y en el mismo orden.",
+    `en contenido_curado_md entre cada página curada. La revista publica exactamente ${PAGINAS_REVISTA} páginas.`,
+    `paginas_curadas debe tener exactamente ${PAGINAS_REVISTA} strings, sin marcadores y en orden;`,
+    "si el documento tiene más páginas, comprime y reparte el contenido sin perder secciones clave;",
+    "si tiene menos, reparte el contenido para completar las páginas editoriales.",
     "indice_imagen_portada es el índice (base 0) de la imagen provista que mejor ilustra el artículo,",
     "o null si no hay imágenes. sugerencia_portada es un prompt breve para generar una portada",
     "solo cuando indice_imagen_portada sea null. Máximo 8 tags en minúsculas.",
@@ -107,9 +111,16 @@ function ajustarPaginas(partes: string[], total: number): string[] {
   const objetivo = Math.max(1, total);
   if (limpias.length === objetivo) return limpias;
   if (limpias.length > objetivo) {
-    const primeras = limpias.slice(0, objetivo - 1);
-    primeras.push(limpias.slice(objetivo - 1).join("\n\n"));
-    return primeras;
+    const porPagina = Math.floor(limpias.length / objetivo);
+    const sobrantes = limpias.length % objetivo;
+    const salida: string[] = [];
+    let cursor = 0;
+    for (let i = 0; i < objetivo; i++) {
+      const cantidad = porPagina + (i < sobrantes ? 1 : 0);
+      salida.push(limpias.slice(cursor, cursor + cantidad).join("\n\n"));
+      cursor += cantidad;
+    }
+    return salida;
   }
   if (limpias.length === 1) return repartirTexto(limpias[0], objetivo);
   return [...limpias, ...Array(objetivo - limpias.length).fill("")];
@@ -202,6 +213,7 @@ export function crearServidorCuracion(): McpServer {
             `Tags ya usados por el editor (evita repetir): ${(args.tags_actuales ?? []).join(", ") || "ninguno"}`,
             `Imágenes disponibles: ${imagenesParaPrompt.length}`,
             `Páginas detectadas en el documento: ${extraido.paginas.length}`,
+            `Páginas que debe devolver la revista: exactamente ${PAGINAS_REVISTA}`,
             "--- TEXTO ORIGINAL POR PÁGINA ---",
             extraido.paginas.join(`\n\n${MARCADOR_PAGINA}\n\n`).slice(0, 24_000),
           ].join("\n");
@@ -227,7 +239,7 @@ export function crearServidorCuracion(): McpServer {
 
           const paginasCuradas = ajustarPaginas(
             data.paginas_curadas?.length ? data.paginas_curadas : dividirEnPaginas(data.contenido_curado_md),
-            extraido.paginas.length || 1,
+            PAGINAS_REVISTA,
           );
           const contenidoConPaginas = paginasCuradas.join(`\n\n${MARCADOR_PAGINA}\n\n`);
 
@@ -245,6 +257,7 @@ export function crearServidorCuracion(): McpServer {
           versiones: versiones.map((v, i) => ({ numero: i + 1, ...v })),
           texto_extraido: extraido.texto,
           paginas_originales: extraido.paginas.length,
+          paginas_publicadas: PAGINAS_REVISTA,
           imagenes_extraidas: extraido.imagenes,
           modelo: MODEL,
           prompt_version: PROMPT_VERSION,

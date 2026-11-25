@@ -5,7 +5,7 @@ import { llamarToolMCP } from "@/lib/mcp-client";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const MIME_PERMITIDOS = new Set([
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     if (archivo.size > 20 * 1024 * 1024) throw new ApiError(413, "El archivo supera 20 MB");
 
     const titulo = String(form.get("titulo") || archivo.name.replace(/\.[^.]+$/, ""));
-    const variantes = Math.min(5, Math.max(1, Number(form.get("variantes") ?? 3)));
+    const variantes = Math.min(5, Math.max(1, Number(form.get("variantes") ?? 1)));
     const imagenes = form
       .getAll("imagenes")
       .filter((entrada): entrada is File => entrada instanceof File && entrada.size > 0)
@@ -124,7 +124,8 @@ export async function POST(request: Request) {
       {
         articuloId: articulo.id,
         versiones,
-        paginas: curado.paginas_originales ?? 1,
+        paginas: curado.paginas_publicadas ?? 16,
+        paginasOriginales: curado.paginas_originales ?? 1,
         textoExtraido: curado.texto_extraido.slice(0, 400),
       },
       { status: 201 },
