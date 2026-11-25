@@ -10,6 +10,8 @@ npm run dev      # http://localhost:3000
 npm run build    # build de producción
 ```
 
+Si después de ejecutar `build` la página sale sin estilos, es porque `.next` quedó con artefactos de producción: `rm -rf .next && npm run dev`. No ejecutes `build` y `dev` al mismo tiempo sobre la misma carpeta.
+
 ## 1. Estructura de carpetas
 
 ```
@@ -73,6 +75,27 @@ El prototipo convive con la arquitectura de producción documentada en:
 - `lib/mcp-client.ts` + `app/api/*` — BFF que conecta Next.js con los MCP y Supabase.
 - `app/editor` y `components/curation` — subida de documentos e historial de curaciones.
 
+### Módulo público, sesión y publicación
+
+Rutas nuevas:
+
+- `/top10` — feed público del Top 10 semanal. Like, estrellas y comentarios requieren sesión.
+- `/publicar` — alta de emprendimiento con portada, diagnóstico local y consentimiento explícito.
+- `/acceso` — registro e inicio de sesión con email/contraseña de Supabase Auth.
+- `/editor` — curación editorial con MCP; al aprobar una versión se puede publicar en la revista.
+
+Tablas según el caso:
+
+| Función | Tablas / buckets |
+|---|---|
+| Revista editorial | `articulos`, `curacion_versiones` (estado `publicado` = visible en `/revista`) |
+| Revista visual del prototipo | `lib/magazine-data.ts` (16 páginas en memoria; la página 5 se actualiza al publicar) |
+| Top 10 y participación | `proyectos`, `top10_semanal`, `likes`, `calificaciones`, `comentarios`, bucket `portadas` |
+| Diagnóstico | `diagnosticos` (privado por RLS), bucket `capturas` |
+| Cuentas y perfiles | `auth.users`, `usuarios` (perfil creado por trigger) |
+
+El registro crea el perfil automáticamente. Para usar `/editor`, cambia el `rol` del usuario a `editor` o `admin` en `public.usuarios`. Sin Supabase las páginas abren igual, pero las acciones que escriben datos muestran un aviso.
+
 ### Arranque local
 
 ```bash
@@ -84,4 +107,4 @@ cd mcp/curation && npm install && npm run dev   # MCP curación en :3001/mcp
 cd mcp/diagnostic && npm install && npm run dev # MCP diagnóstico en :3002/mcp
 ```
 
-Aplica el esquema con `supabase db push` o pegando el SQL en el SQL Editor de Supabase.
+Aplica `supabase/migrations/0001_initial_schema.sql` y `0002_auth_publicacion.sql` con `supabase db push` o pegando ambos SQL en el SQL Editor de Supabase. Para probar la publicación solo necesitas Supabase; el MCP y `OPENAI_API_KEY` son necesarios únicamente para la curación editorial y el diagnóstico con IA.

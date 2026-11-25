@@ -5,10 +5,10 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { createTwoFilesPatch } from "diff";
 import { z } from "zod";
 import { completeJson } from "../../shared/src/llm";
-import { extraerDocumento } from "../../shared/src/extract";
+import { extraerDocumento, dividirEnPaginas, MARCADOR_PAGINA } from "../../shared/src/extract";
 import { descargarArchivo } from "../../shared/src/http";
 
-const PROMPT_VERSION = "curacion-v1.0";
+const PROMPT_VERSION = "curacion-v1.1-paginado";
 const MODEL = process.env.CURACION_MODEL ?? "gpt-4o-mini";
 
 const enfoques = [
@@ -36,6 +36,7 @@ const versionSchema = z.object({
 const curacionOutputSchema = z.object({
   versiones: z.array(versionSchema.extend({ numero: z.number().int().positive() })),
   texto_extraido: z.string(),
+  paginas_originales: z.number().int(),
   imagenes_extraidas: z.array(z.object({ nombre: z.string(), dataUrl: z.string() })),
   modelo: z.string(),
   prompt_version: z.string(),
@@ -47,6 +48,7 @@ const respuestaLLM = z.object({
   contenido_curado_md: z.string().min(1),
   resumen: z.string().min(1),
   tags: z.array(z.string()).max(8),
+  paginas_curadas: z.array(z.string()).default([]),
   indice_imagen_portada: z.number().int().min(0).nullable(),
   sugerencia_portada: z.string().nullable(),
   confianza: z.number().min(0).max(1),
@@ -78,12 +80,39 @@ function systemPrompt(): string {
     "sin inventar datos, cifras ni citas. Conserva el tono y las ideas del autor.",
     "Devuelve ÚNICAMENTE un objeto JSON válido con esta forma exacta:",
     '{"titulo_curado":"string","contenido_curado_md":"string","resumen":"string de máximo 240 caracteres",',
-    '"tags":["string"],"indice_imagen_portada":number|null,',
+    '"tags":["string"],"paginas_curadas":["string"],"indice_imagen_portada":number|null,',
     '"sugerencia_portada":"string|null","confianza":número entre 0 y 1}',
+    `El texto original trae ${MARCADOR_PAGINA} entre páginas. Conserva exactamente ese marcador`,
+    "en contenido_curado_md entre cada página curada. La página 1 es la portada del documento.",
+    "paginas_curadas debe tener un string por página del documento, sin marcadores y en el mismo orden.",
     "indice_imagen_portada es el índice (base 0) de la imagen provista que mejor ilustra el artículo,",
     "o null si no hay imágenes. sugerencia_portada es un prompt breve para generar una portada",
     "solo cuando indice_imagen_portada sea null. Máximo 8 tags en minúsculas.",
   ].join(" ");
+}
+
+function repartirTexto(texto: string, total: number): string[] {
+  const parrafos = texto.split(/\n\n+/).filter(Boolean);
+  if (parrafos.length <= 1) return [texto.trim(), ...Array(Math.max(0, total - 1)).fill("")];
+  const porPagina = Math.ceil(parrafos.length / total);
+  const salida: string[] = [];
+  for (let i = 0; i < total; i++) {
+    salida.push(parrafos.slice(i * porPagina, (i + 1) * porPagina).join("\n\n").trim());
+  }
+  return salida;
+}
+
+function ajustarPaginas(partes: string[], total: number): string[] {
+  const limpias = partes.map((parte) => String(parte).trim()).filter(Boolean);
+  const objetivo = Math.max(1, total);
+  if (limpias.length === objetivo) return limpias;
+  if (limpias.length > objetivo) {
+    const primeras = limpias.slice(0, objetivo - 1);
+    primeras.push(limpias.slice(objetivo - 1).join("\n\n"));
+    return primeras;
+  }
+  if (limpias.length === 1) return repartirTexto(limpias[0], objetivo);
+  return [...limpias, ...Array(objetivo - limpias.length).fill("")];
 }
 
 function resultadoTexto(datos: Record<string, unknown>) {
@@ -106,12 +135,14 @@ export function crearServidorCuracion(): McpServer {
       inputSchema: archivoInput,
       outputSchema: {
         texto: z.string(),
+        paginas: z.array(z.string()),
         imagenes: z.array(z.object({ nombre: z.string(), dataUrl: z.string() })),
         metadatos: z.object({
           nombre: z.string(),
           mime: z.string(),
           formato: z.enum(["docx", "odt", "md"]),
           caracteres: z.number().int(),
+          paginas: z.number().int(),
         }),
       },
     },
@@ -121,6 +152,7 @@ export function crearServidorCuracion(): McpServer {
         const extraido = await extraerDocumento(archivo.buffer, archivo.mime, archivo.nombre);
         return resultadoTexto({
           texto: extraido.texto,
+          paginas: extraido.paginas,
           imagenes: extraido.imagenes,
           metadatos: extraido.metadatos,
         });
@@ -169,8 +201,9 @@ export function crearServidorCuracion(): McpServer {
             `Enfoque de esta versión: ${enfoques[i % enfoques.length]}`,
             `Tags ya usados por el editor (evita repetir): ${(args.tags_actuales ?? []).join(", ") || "ninguno"}`,
             `Imágenes disponibles: ${imagenesParaPrompt.length}`,
-            "--- TEXTO ORIGINAL ---",
-            extraido.texto.slice(0, 24_000),
+            `Páginas detectadas en el documento: ${extraido.paginas.length}`,
+            "--- TEXTO ORIGINAL POR PÁGINA ---",
+            extraido.paginas.join(`\n\n${MARCADOR_PAGINA}\n\n`).slice(0, 24_000),
           ].join("\n");
 
           const { data, meta } = await completeJson({
@@ -192,9 +225,15 @@ export function crearServidorCuracion(): McpServer {
                 ? extraido.imagenes[indice].dataUrl
                 : data.sugerencia_portada;
 
+          const paginasCuradas = ajustarPaginas(
+            data.paginas_curadas?.length ? data.paginas_curadas : dividirEnPaginas(data.contenido_curado_md),
+            extraido.paginas.length || 1,
+          );
+          const contenidoConPaginas = paginasCuradas.join(`\n\n${MARCADOR_PAGINA}\n\n`);
+
           versiones.push({
             titulo_curado: data.titulo_curado,
-            contenido_curado_md: data.contenido_curado_md,
+            contenido_curado_md: contenidoConPaginas,
             resumen: data.resumen.slice(0, 600),
             tags: data.tags.slice(0, 8).map((t) => t.toLowerCase().trim()),
             imagen_portada_sugerida: portada,
@@ -205,6 +244,7 @@ export function crearServidorCuracion(): McpServer {
         return resultadoTexto({
           versiones: versiones.map((v, i) => ({ numero: i + 1, ...v })),
           texto_extraido: extraido.texto,
+          paginas_originales: extraido.paginas.length,
           imagenes_extraidas: extraido.imagenes,
           modelo: MODEL,
           prompt_version: PROMPT_VERSION,

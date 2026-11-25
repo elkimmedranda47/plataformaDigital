@@ -124,6 +124,7 @@ export async function POST(request: Request) {
       {
         articuloId: articulo.id,
         versiones,
+        paginas: curado.paginas_originales ?? 1,
         textoExtraido: curado.texto_extraido.slice(0, 400),
       },
       { status: 201 },

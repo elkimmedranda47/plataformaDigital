@@ -9,6 +9,8 @@ export async function PATCH(
 ) {
   try {
     const { user } = await requireUser(["editor", "admin"]);
+    const cuerpo = (await request.json().catch(() => ({}))) as { publicar?: boolean };
+    const publicar = cuerpo.publicar === true;
     const admin = createSupabaseAdmin();
 
     const { data: version, error: errorVersion } = await admin
@@ -39,7 +41,8 @@ export async function PATCH(
         resumen: version.resumen,
         contenido_md: version.contenido_curado_md,
         imagen_portada_url: version.imagen_portada_sugerida?.startsWith("data:") ? null : version.imagen_portada_sugerida,
-        estado: "aprobado",
+        estado: publicar ? "publicado" : "aprobado",
+        ...(publicar ? { published_at: new Date().toISOString() } : {}),
       })
       .eq("id", articulo.id)
       .select()

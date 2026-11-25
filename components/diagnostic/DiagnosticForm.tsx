@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FaSquarePollVertical, FaUserCheck } from "react-icons/fa6";
+import Link from "next/link";
+import { FaSquarePollVertical, FaUpload, FaUserCheck } from "react-icons/fa6";
 import { useMagazine } from "@/context/MagazineContext";
 import { computeScore, isApproved } from "@/lib/scoring";
 import type { DiagnosticInput, DiagnosticResultData, EnglishLevel } from "@/lib/types";
@@ -25,6 +26,7 @@ export default function DiagnosticForm() {
   const { publishSplash } = useMagazine();
   const [form, setForm] = useState<DiagnosticInput>(initialForm);
   const [result, setResult] = useState<DiagnosticResultData | null>(null);
+  const score = computeScore(form.codeQuality, form.english);
 
   // Un solo handler para todos los campos controlados
   function update<K extends keyof DiagnosticInput>(key: K, value: DiagnosticInput[K]) {
@@ -33,7 +35,6 @@ export default function DiagnosticForm() {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const score = computeScore(form.codeQuality, form.english);
     const approved = isApproved(score);
 
     if (approved) {
@@ -114,7 +115,32 @@ export default function DiagnosticForm() {
         </form>
       </div>
 
-      {result && <DiagnosticResult result={result} />}
+      {result && (
+        <>
+          <DiagnosticResult result={result} />
+          <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-emerald-300">Da el siguiente paso</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Publica el proyecto en el Top 10 con tu portada y tu consentimiento explícito.
+              </p>
+            </div>
+            <Link
+              href={`/publicar?${new URLSearchParams({
+                titulo: form.title,
+                descripcion: form.description,
+                github: form.github,
+                stack: form.techStack,
+                score: String(score),
+                english: form.english,
+              }).toString()}`}
+              className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-lg transition"
+            >
+              <FaUpload /> Publicar este proyecto
+            </Link>
+          </div>
+        </>
+      )}
     </>
   );
 }

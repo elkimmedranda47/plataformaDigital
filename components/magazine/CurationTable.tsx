@@ -40,7 +40,15 @@ export default function CurationTable({ pages, onBack }: { pages: MagazinePage[]
                 </td>
                 <td className="p-3 text-center font-mono font-bold text-emerald-400">{p.score}</td>
                 <td className="p-3 text-right">
-                  <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Aprobado</span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] ${
+                      p.status === "Publicado"
+                        ? "bg-brand-gold/15 text-brand-gold border border-brand-gold/40"
+                        : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                    }`}
+                  >
+                    {p.status}
+                  </span>
                 </td>
               </tr>
             ))}

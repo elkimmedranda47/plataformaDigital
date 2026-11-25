@@ -17,7 +17,14 @@ export default function EditorWorkspace() {
           setVersiones(nuevas);
         }}
       />
-      <CurationHistory articuloId={articuloId} versionesIniciales={versiones} />
+      <CurationHistory
+        articuloId={articuloId}
+        versionesIniciales={versiones}
+        onEliminado={() => {
+          setArticuloId(null);
+          setVersiones([]);
+        }}
+      />
     </div>
   );
 }

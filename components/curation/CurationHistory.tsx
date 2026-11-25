@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaCheck, FaCodeBranch, FaRegStar, FaRotate } from "react-icons/fa6";
+import { FaBookOpen, FaCheck, FaCodeBranch, FaEyeSlash, FaRegStar, FaRotate, FaTrash } from "react-icons/fa6";
 import type { CuracionVersion } from "@/lib/api-types";
 
 type LineaDiff = { tipo: "igual" | "add" | "del"; texto: string };
@@ -41,27 +41,44 @@ function diffLineas(a: string, b: string): LineaDiff[] {
 type Props = {
   articuloId: string | null;
   versionesIniciales: CuracionVersion[];
+  onEliminado?: () => void;
 };
 
-export default function CurationHistory({ articuloId, versionesIniciales }: Props) {
+export default function CurationHistory({ articuloId, versionesIniciales, onEliminado }: Props) {
   const [versiones, setVersiones] = useState<CuracionVersion[]>(versionesIniciales);
   const [activa, setActiva] = useState<string | null>(null);
   const [comparando, setComparando] = useState<[string, string] | null>(null);
   const [diff, setDiff] = useState<LineaDiff[] | null>(null);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
+  const [estadoArticulo, setEstadoArticulo] = useState<string | null>(null);
 
   useEffect(() => {
     setVersiones(versionesIniciales);
     setActiva(null);
     setDiff(null);
+    if (!articuloId) {
+      setEstadoArticulo(null);
+      return;
+    }
+    fetch(`/api/curation/articulos/${articuloId}`)
+      .then((respuesta) => (respuesta.ok ? respuesta.json() : Promise.resolve(null)))
+      .then((cuerpo) => setEstadoArticulo(cuerpo?.articulo?.estado ?? null))
+      .catch(() => setEstadoArticulo(null));
   }, [articuloId, versionesIniciales]);
 
   async function recargar() {
     if (!articuloId) return;
-    const respuesta = await fetch(`/api/curation/versions?articuloId=${articuloId}`);
-    const cuerpo = await respuesta.json();
-    if (respuesta.ok) setVersiones(cuerpo.versiones);
+    const [respuestaVersiones, respuestaArticulo] = await Promise.all([
+      fetch(`/api/curation/versions?articuloId=${articuloId}`),
+      fetch(`/api/curation/articulos/${articuloId}`),
+    ]);
+    const cuerpoVersiones = await respuestaVersiones.json();
+    if (respuestaVersiones.ok) setVersiones(cuerpoVersiones.versiones);
+    if (respuestaArticulo.ok) {
+      const cuerpoArticulo = await respuestaArticulo.json();
+      setEstadoArticulo(cuerpoArticulo.articulo?.estado ?? null);
+    }
   }
 
   async function regenerar() {
@@ -85,19 +102,90 @@ export default function CurationHistory({ articuloId, versionesIniciales }: Prop
     }
   }
 
+  async function reprocesarPaginas() {
+    if (!articuloId) return;
+    setCargando(true);
+    setMensaje(null);
+    try {
+      const respuesta = await fetch(`/api/curation/articulos/${articuloId}/reprocesar`, {
+        method: "POST",
+      });
+      const cuerpo = await respuesta.json();
+      if (!respuesta.ok) throw new Error(cuerpo.error ?? "No se pudo adaptar el documento a páginas");
+      await recargar();
+      setMensaje(
+        `${cuerpo.mensaje ?? "Documento adaptado"}. Las páginas ya quedaron listas para el visor.`,
+      );
+    } catch (e) {
+      setMensaje(e instanceof Error ? e.message : "Error inesperado");
+    } finally {
+      setCargando(false);
+    }
+  }
+
   function verDiff(izquierda: CuracionVersion, derecha: CuracionVersion) {
     setComparando([izquierda.id, derecha.id]);
     setDiff(diffLineas(izquierda.contenido_curado_md, derecha.contenido_curado_md));
   }
 
-  async function aprobar(version: CuracionVersion) {
+  async function aprobar(version: CuracionVersion, publicar: boolean) {
     setCargando(true);
     try {
-      const respuesta = await fetch(`/api/curation/versions/${version.id}/select`, { method: "PATCH" });
+      const respuesta = await fetch(`/api/curation/versions/${version.id}/select`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicar }),
+      });
       const cuerpo = await respuesta.json();
       if (!respuesta.ok) throw new Error(cuerpo.error ?? "No se pudo aprobar");
       setActiva(version.id);
-      setMensaje(`Versión ${version.numero} aprobada y lista para publicar`);
+      setMensaje(
+        publicar
+          ? `Versión ${version.numero} publicada en la revista`
+          : `Versión ${version.numero} aprobada y lista para publicar`,
+      );
+    } catch (e) {
+      setMensaje(e instanceof Error ? e.message : "Error inesperado");
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  async function quitarDeRevista() {
+    if (!articuloId) return;
+    if (!window.confirm("¿Quitar este artículo de la revista?")) return;
+    setCargando(true);
+    setMensaje(null);
+    try {
+      const respuesta = await fetch(`/api/curation/articulos/${articuloId}/estado`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: "borrador" }),
+      });
+      const cuerpo = await respuesta.json();
+      if (!respuesta.ok) throw new Error(cuerpo.error ?? "No se pudo quitar de la revista");
+      await recargar();
+      setMensaje("Artículo quitado de la revista; el historial se conserva");
+    } catch (e) {
+      setMensaje(e instanceof Error ? e.message : "Error inesperado");
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  async function eliminarArticulo() {
+    if (!articuloId) return;
+    if (!window.confirm("¿Eliminar definitivamente el artículo, sus versiones y sus archivos?")) return;
+    setCargando(true);
+    setMensaje(null);
+    try {
+      const respuesta = await fetch(`/api/curation/articulos/${articuloId}`, {
+        method: "DELETE",
+      });
+      const cuerpo = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) throw new Error(cuerpo.error ?? "No se pudo eliminar el artículo");
+      setMensaje("Artículo eliminado definitivamente");
+      onEliminado?.();
     } catch (e) {
       setMensaje(e instanceof Error ? e.message : "Error inesperado");
     } finally {
@@ -119,14 +207,50 @@ export default function CurationHistory({ articuloId, versionesIniciales }: Prop
         <h2 className="text-lg font-bold text-cyan-400 flex items-center gap-2">
           <FaCodeBranch /> Historial de curación
         </h2>
-        <button
-          onClick={regenerar}
-          disabled={cargando}
-          className="text-[11px] bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5"
-        >
-          <FaRotate className={cargando ? "animate-spin" : ""} /> Regenerar 2 versiones
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={reprocesarPaginas}
+            disabled={cargando}
+            className="text-[11px] bg-brand-gold/15 hover:bg-brand-gold/25 disabled:opacity-50 text-brand-gold border border-brand-gold/40 px-3 py-1.5 rounded-lg flex items-center gap-1.5"
+          >
+            <FaBookOpen /> Adaptar a páginas
+          </button>
+          <button
+            onClick={regenerar}
+            disabled={cargando}
+            className="text-[11px] bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5"
+          >
+            <FaRotate className={cargando ? "animate-spin" : ""} /> Regenerar 2 versiones
+          </button>
+        </div>
       </div>
+
+      {estadoArticulo && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2">
+          <span className="text-[11px] text-slate-400">
+            Estado actual:{" "}
+            <strong className="text-slate-200 uppercase">{estadoArticulo}</strong>
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {(estadoArticulo === "publicado" || estadoArticulo === "aprobado") && (
+              <button
+                onClick={quitarDeRevista}
+                disabled={cargando}
+                className="text-[11px] bg-amber-500/15 hover:bg-amber-500/25 disabled:opacity-50 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-lg flex items-center gap-1.5"
+              >
+                <FaEyeSlash /> Quitar de revista
+              </button>
+            )}
+            <button
+              onClick={eliminarArticulo}
+              disabled={cargando}
+              className="text-[11px] bg-red-500/15 hover:bg-red-500/25 disabled:opacity-50 text-red-300 border border-red-500/40 px-3 py-1.5 rounded-lg flex items-center gap-1.5"
+            >
+              <FaTrash /> Eliminar definitivamente
+            </button>
+          </div>
+        </div>
+      )}
 
       {mensaje && <p className="text-[11px] text-cyan-300 mb-3">{mensaje}</p>}
 
@@ -146,13 +270,22 @@ export default function CurationHistory({ articuloId, versionesIniciales }: Prop
                   {new Date(version.created_at).toLocaleString("es-CO")}
                 </p>
               </div>
-              <button
-                onClick={() => aprobar(version)}
-                disabled={cargando || activa === version.id}
-                className="shrink-0 text-[11px] bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
-              >
-                <FaCheck /> {activa === version.id ? "Aprobada" : "Aprobar"}
-              </button>
+              <div className="shrink-0 flex flex-col items-end gap-1.5">
+                <button
+                  onClick={() => aprobar(version, false)}
+                  disabled={cargando || activa === version.id}
+                  className="text-[11px] bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
+                >
+                  <FaCheck /> {activa === version.id ? "Aprobada" : "Aprobar"}
+                </button>
+                <button
+                  onClick={() => aprobar(version, true)}
+                  disabled={cargando}
+                  className="text-[11px] bg-brand-gold/15 hover:bg-brand-gold/25 text-brand-gold border border-brand-gold/40 px-3 py-1.5 rounded-lg flex items-center gap-1"
+                >
+                  <FaBookOpen /> Publicar en revista
+                </button>
+              </div>
             </div>
 
             <p className="text-xs text-slate-400 mt-3">{version.resumen}</p>

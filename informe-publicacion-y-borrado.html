@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Informe de implementación y tutorial de publicación — Talento Tech Valle</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #111c2f;
+    --panel-2: #0e1728;
+    --border: #1e2c44;
+    --text: #dbe7f5;
+    --muted: #8fa3bd;
+    --accent: #22d3ee;
+    --green: #34d399;
+    --warn: #fbbf24;
+    --red: #f87171;
+    --code: #0a1424;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.65;
+    font-size: 15px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: linear-gradient(135deg, #0e2a3e 0%, #111c2f 55%, #131a30 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 36px;
+    margin-bottom: 28px;
+  }
+  .kicker { color: var(--accent); letter-spacing: .16em; text-transform: uppercase; font-size: 11px; font-weight: 700; }
+  h1 { margin: 8px 0 6px; font-size: 30px; line-height: 1.2; }
+  h2 { font-size: 21px; margin: 44px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); color: #eaf4ff; }
+  h3 { font-size: 16px; margin: 26px 0 10px; color: var(--accent); }
+  p { margin: 10px 0; }
+  .lead { color: var(--muted); max-width: 860px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    background: rgba(34, 211, 238, .08);
+    border: 1px solid rgba(34, 211, 238, .28);
+    color: #a5f3fc;
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  nav.toc { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; margin-bottom: 18px; }
+  nav.toc strong { display: block; font-size: 11px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  nav.toc a { color: var(--accent); text-decoration: none; font-size: 13px; display: inline-block; margin: 3px 16px 3px 0; }
+  nav.toc a:hover { text-decoration: underline; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 18px; }
+  section:target { border-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: #a9c6e6; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; background: rgba(255,255,255,.02); }
+  tr:last-child td { border-bottom: none; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: rgba(34, 211, 238, .09);
+    color: #a5f3fc;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  pre { background: var(--code); border: 1px solid var(--border); border-radius: 10px; padding: 16px; overflow-x: auto; font-size: 12px; line-height: 1.55; color: #cbd9ea; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .ok, .warn, .danger { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+  .ok { color: #6ee7b7; background: rgba(52, 211, 153, .12); border: 1px solid rgba(52, 211, 153, .3); }
+  .warn { color: #fcd34d; background: rgba(251, 191, 36, .1); border: 1px solid rgba(251, 191, 36, .3); }
+  .danger { color: #fca5a5; background: rgba(248, 113, 113, .1); border: 1px solid rgba(248, 113, 113, .3); }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .note { border-left: 3px solid var(--warn); background: rgba(251, 191, 36, .06); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: #fde68a; }
+  .success { border-left: 3px solid var(--green); background: rgba(52, 211, 153, .06); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: #a7f3d0; }
+  .danger-note { border-left: 3px solid var(--red); background: rgba(248, 113, 113, .06); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: #fecaca; }
+  .steps { counter-reset: paso; }
+  .step { position: relative; padding-left: 46px; margin: 18px 0; }
+  .step::before {
+    counter-increment: paso;
+    content: counter(paso);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(34, 211, 238, .12);
+    border: 1px solid rgba(34, 211, 238, .4);
+    color: #a5f3fc;
+    font-size: 13px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+  }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 36px; }
+  @media (max-width: 760px) {
+    .wrap { padding: 16px 12px 48px; }
+    header.hero { padding: 22px; }
+    section { padding: 18px 16px; }
+    h1 { font-size: 24px; }
+    table { display: block; overflow-x: auto; }
+  }
+  @media print {
+    body { background: #fff; color: #111; font-size: 11px; }
+    .wrap { max-width: none; padding: 0; }
+    header.hero, section, nav.toc { background: #fff; border-color: #bbb; color: #111; }
+    nav.toc { display: none; }
+    h1, h2, h3, th { color: #111; }
+    .lead, footer, .kicker { color: #444; }
+    pre { background: #f5f5f5; border-color: #ccc; color: #111; white-space: pre-wrap; }
+    code { background: #eee; color: #111; }
+    th { background: #f0f0f0; }
+    .note, .success, .danger-note { color: #333; background: #fafafa; }
+    section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Informe de implementación · Talento Tech Valle</div>
+  <h1>Revista editorial con páginas reales,<br /><span style="color:var(--accent)">publicación y borrado controlado</span></h1>
+  <p class="lead">Este informe resume lo implementado después del informe final v3.0 y explica, paso a paso, cómo levantar la aplicación, publicar un artículo en la Revista Digital y quitarlo o eliminarlo definitivamente.</p>
+  <div class="chips">
+    <span class="chip">Fecha: 24 de noviembre de 2026</span>
+    <span class="chip">Versión: informe operativo v1.1</span>
+    <span class="chip">Stack: Next.js 14 · TypeScript · Supabase · MCP · Gemini</span>
+    <span class="chip">Estado: local verificado</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>Contenido</strong>
+  <a href="#resumen">1. Resumen ejecutivo</a>
+  <a href="#implementado">2. Lo implementado</a>
+  <a href="#arranque">3. Cómo levantar la aplicación</a>
+  <a href="#archivos">4. Archivos y endpoints</a>
+  <a href="#publicar">5. Tutorial: publicar</a>
+  <a href="#borrar">6. Tutorial: quitar o borrar</a>
+  <a href="#verificacion">7. Verificación</a>
+  <a href="#estado">8. Estado y recomendaciones</a>
+</nav>
+
+<section id="resumen">
+  <h2>1. Resumen ejecutivo</h2>
+  <p>La revista ya no muestra solo tarjetas: ahora el documento curado se refleja en el visor visual. Al publicar, el contenido ocupa la página 1, luego la 2, la 3 y así sucesivamente. El artículo actual detectó <strong>11 páginas</strong> desde el ODT y dejó <strong>10 marcadores</strong> <code>[[PAGINA]]</code> en el contenido curado.</p>
+  <table>
+    <thead><tr><th>Ítem</th><th>Estado</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Curación con Gemini</td><td><span class="ok">OK</span></td><td>Modelo cambiado a <code>gemini-3.5-flash-lite</code>. El alias anterior devolvía 503 por demanda y <code>gemini-2.5-flash-lite</code> ya no está disponible para cuentas nuevas.</td></tr>
+      <tr><td>Visor editorial</td><td><span class="ok">OK</span></td><td>Plano General, vista previa, publicación desde tarjeta o modal y salto automático a la página 1.</td></tr>
+      <tr><td>Paginado del documento</td><td><span class="ok">OK</span></td><td>Extracción de saltos reales de ODT/DOCX/MD y curación con prompt <code>curacion-v1.1-paginado</code>.</td></tr>
+      <tr><td>Quitar publicación</td><td><span class="ok">OK</span></td><td>Botón reversible que conserva el historial y limpia <code>published_at</code>.</td></tr>
+      <tr><td>Eliminación definitiva</td><td><span class="ok">OK</span></td><td>Borra artículo, versiones en cascada y archivos del bucket <code>documentos</code>.</td></tr>
+      <tr><td>Estilos de la web</td><td><span class="ok">OK</span></td><td>Se corrigió el dev server que servía CSS/JS con 404 después de borrar <code>.next</code> durante un build.</td></tr>
+    </tbody>
+  </table>
+  <div class="success"><strong>Resultado:</strong> el flujo completo de subir → curar → aprobar → publicar → ver en el visor → quitar o eliminar está implementado y verificado en local.</div>
+</section>
+
+<section id="implementado">
+  <h2>2. Lo implementado</h2>
+
+  <h3>2.1 Proveedor de IA y MCP</h3>
+  <ul>
+    <li><code>OPENAI_BASE_URL</code> apunta al endpoint compatible de Gemini: <code>https://generativelanguage.googleapis.com/v1beta/openai/</code>.</li>
+    <li><code>CURACION_MODEL</code> y <code>DIAGNOSTICO_MODEL</code> usan <code>gemini-3.5-flash-lite</code>.</li>
+    <li>El MCP de curación quedó escuchando en <code>http://localhost:3001/mcp</code> y responde a <code>curar_contenido</code> con páginas y marcadores.</li>
+    <li>Una prueba real con el ODT devolvió <code>paginas_originales: 11</code>, <code>marcadores: 10</code> y contenido paginado.</li>
+  </ul>
+
+  <h3>2.2 Revista visual y Plano General</h3>
+  <ul>
+    <li><code>/revista</code> consulta simultáneamente artículos públicos y piezas aprobadas del estudio editorial.</li>
+    <li>El Plano General muestra las 16 páginas base y una sección «Piezas del estudio editorial».</li>
+    <li>Cada pieza permite <strong>Vista previa</strong>, <strong>Publicar</strong>, <strong>Ver en visor</strong>, <strong>Quitar</strong> y <strong>Eliminar</strong>.</li>
+    <li>Después de publicar, el visor vuelve a la página 1 con un aviso confirmando la operación.</li>
+    <li>Las imágenes firmadas de Supabase Storage se renuevan automáticamente antes de mostrarse.</li>
+  </ul>
+
+  <h3>2.3 Contenido paginado</h3>
+  <ul>
+    <li>El extractor detecta saltos de página reales en ODT (<code>text:soft-page-break</code>, <code>fo:break-before="page"</code>), DOCX (<code>w:br</code>, <code>w:pageBreakBefore</code>) y marcadores manuales en texto/Markdown.</li>
+    <li>El prompt de curación pide conserve los marcadores <code>[[PAGINA]]</code> y distribuya el texto sin perder información.</li>
+    <li>El endpoint <code>POST /api/curation/articulos/[id]/reprocesar</code> permite adaptar un artículo ya subido sin volver a cargar el archivo.</li>
+    <li>El botón «Adaptar a páginas» está disponible en el historial del estudio editorial.</li>
+  </ul>
+
+  <h3>2.4 Publicar y despublicar</h3>
+  <table>
+    <thead><tr><th>Acción</th><th>Qué hace</th><th>Reversible</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Aprobar</strong></td><td>Fija la versión activa y deja <code>estado = 'aprobado'</code>. La pieza aparece en el Plano General, pero no en la API pública.</td><td>Sí</td></tr>
+      <tr><td><strong>Publicar</strong></td><td>Fija la versión activa, copia título/resumen/contenido al artículo y escribe <code>estado = 'publicado'</code> con <code>published_at</code>.</td><td>Sí, quitándolo</td></tr>
+      <tr><td><strong>Quitar de revista</strong></td><td>Pasa el artículo a <code>borrador</code> y limpia <code>published_at</code>. Desaparece del visor y del Plano General, pero conserva versiones.</td><td>Sí</td></tr>
+      <tr><td><strong>Eliminar definitivamente</strong></td><td>Borra el artículo, sus versiones por cascada y los archivos en Storage.</td><td><span class="danger">No</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="arranque">
+  <h2>3. Cómo levantar la aplicación</h2>
+
+  <h3>3.1 Preparación única</h3>
+  <ol>
+    <li>Tener Node.js 18 o superior y npm instalados.</li>
+    <li>Ejecutar en Supabase → SQL Editor el archivo <code>supabase/setup-completo.sql</code>.</li>
+    <li>En Supabase → Authentication → Providers, mantener <strong>Email</strong> activo. Configurar:
+      <pre><code>Site URL: http://localhost:3000
+Redirect URLs: http://localhost:3000/**</code></pre>
+    </li>
+    <li>Copiar la plantilla de variables y completarla:
+      <pre><code>cp .env.example .env.local</code></pre>
+      Variables mínimas:
+      <pre><code>NEXT_PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+MCP_CURACION_URL=http://localhost:3001/mcp
+MCP_DIAGNOSTICO_URL=http://localhost:3002/mcp
+MCP_ALLOWED_HOSTS=TU-PROYECTO.supabase.co
+OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+OPENAI_API_KEY=...
+CURACION_MODEL=gemini-3.5-flash-lite
+DIAGNOSTICO_MODEL=gemini-3.5-flash-lite</code></pre>
+    </li>
+    <li>Instalar dependencias de la app y de los MCP:
+      <pre><code>npm install
+npm install --prefix mcp/curation
+npm install --prefix mcp/diagnostic</code></pre>
+    </li>
+  </ol>
+
+  <h3>3.2 Arranque en modo desarrollo</h3>
+  <p>Se recomiendan tres terminales. Las variables se exportan desde <code>.env.local</code> para que los MCP usen las mismas credenciales que Next.js.</p>
+  <table>
+    <thead><tr><th>Terminal</th><th>Comando</th><th>Qué levanta</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><pre><code>set -a
+. ./.env.local
+set +a
+npm run dev</code></pre></td>
+        <td>Web Next.js en <code>http://localhost:3000</code>.</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><pre><code>cd mcp/curation
+set -a
+. ../../.env.local
+set +a
+npm run dev</code></pre></td>
+        <td>MCP de curación en <code>http://localhost:3001/mcp</code>. Necesario para <code>/editor</code>.</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><pre><code>cd mcp/diagnostic
+set -a
+. ../../.env.local
+set +a
+npm run dev</code></pre></td>
+        <td>MCP de diagnóstico en <code>http://localhost:3002/mcp</code>. Solo para <code>/diagnostico</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>El MCP de curación debe imprimir <code>mcp-curacion escuchando en http://localhost:3001/mcp</code>. Si solo quieres ver la revista pública, basta la terminal 1.</p>
+
+  <h3>3.3 Verificación rápida</h3>
+  <pre><code>curl -s http://localhost:3000/api/proyectos
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/revista
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/_next/static/css/app/layout.css</code></pre>
+  <ul>
+    <li><code>/api/proyectos</code> debe devolver <code>"configurado":true</code>.</li>
+    <li><code>/revista</code> y el CSS deben devolver <code>200</code>.</li>
+    <li>Para usar <code>/editor</code>, promover el usuario:
+      <pre><code>update public.usuarios
+set rol = 'editor'
+where nombre = 'ekn47';</code></pre>
+    </li>
+  </ul>
+
+  <h3>3.4 Páginas disponibles</h3>
+  <table>
+    <thead><tr><th>URL</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><code>http://localhost:3000/</code></td><td>Portada general.</td></tr>
+      <tr><td><code>http://localhost:3000/revista</code></td><td>Revista Digital y Plano General.</td></tr>
+      <tr><td><code>http://localhost:3000/editor</code></td><td>Estudio editorial; requiere rol editor.</td></tr>
+      <tr><td><code>http://localhost:3000/acceso</code></td><td>Registro e inicio de sesión.</td></tr>
+      <tr><td><code>http://localhost:3000/publicar</code></td><td>Publicación de emprendimientos.</td></tr>
+      <tr><td><code>http://localhost:3000/top10</code></td><td>Ranking semanal.</td></tr>
+      <tr><td><code>http://localhost:3000/diagnostico</code></td><td>Diagnóstico local con opción de LLM.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.5 Modo producción y reinicio limpio</h3>
+  <pre><code>npm run build
+npm start</code></pre>
+  <p>Si el build falla al descargar Google Fonts, se usó en este entorno:</p>
+  <pre><code>NEXT_FONT_GOOGLE_MOCKED_RESPONSES=/tmp/opencode/font-mocks.js npm run build
+npm start</code></pre>
+  <div class="note"><strong>No ejecutes <code>npm run build</code> ni borres <code>.next</code> mientras <code>npm run dev</code> esté activo.</strong> Si la web queda sin estilos, detén los procesos de Next, elimina <code>.next</code> y vuelve a iniciar una sola terminal con <code>npm run dev</code>.</div>
+</section>
+
+<section id="archivos">
+  <h2>4. Archivos y endpoints</h2>
+  <table>
+    <thead><tr><th>Archivo o ruta</th><th>Función</th></tr></thead>
+    <tbody>
+      <tr><td><code>.env.local</code></td><td>Configuración de Supabase, Gemini y hosts permitidos del MCP.</td></tr>
+      <tr><td><code>mcp/shared/src/extract.ts</code></td><td>Extracción de páginas y marcador <code>[[PAGINA]]</code>.</td></tr>
+      <tr><td><code>mcp/curation/src/index.ts</code></td><td>Prompt paginado y herramienta <code>curar_contenido</code>.</td></tr>
+      <tr><td><code>context/MagazineContext.tsx</code></td><td>Carga de APIs, mapeo de páginas y acción de publicación.</td></tr>
+      <tr><td><code>components/magazine/MagazineViewer.tsx</code></td><td>Visor, vista previa y acciones de publicar/quitar/eliminar.</td></tr>
+      <tr><td><code>components/magazine/FlatPlanGrid.tsx</code></td><td>Plano General y botones por pieza editorial.</td></tr>
+      <tr><td><code>components/curation/CurationHistory.tsx</code></td><td>Historial, adaptación a páginas, quitar y eliminar.</td></tr>
+      <tr><td><code>components/curation/EditorWorkspace.tsx</code></td><td>Limpia la selección cuando el artículo se elimina.</td></tr>
+      <tr><td><code>app/api/revista/articulos-editoriales/route.ts</code></td><td>Lista piezas aprobadas/publicadas para editores.</td></tr>
+      <tr><td><code>app/api/curation/articulos/[id]/reprocesar/route.ts</code></td><td>Reprocesa el archivo guardado con el prompt paginado.</td></tr>
+      <tr><td><code>app/api/curation/articulos/[id]/route.ts</code></td><td><code>GET</code> del estado del artículo y <code>DELETE</code> definitivo.</td></tr>
+      <tr><td><code>app/api/curation/articulos/[id]/estado/route.ts</code></td><td><code>PATCH</code> para cambiar a <code>borrador</code> o <code>aprobado</code>.</td></tr>
+      <tr><td><code>lib/storage.ts</code></td><td>Renovación de URLs firmadas de imágenes.</td></tr>
+      <tr><td><code>lib/magazine-data.ts</code></td><td>Páginas base, último pliego y títulos derivados del contenido.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="publicar">
+  <h2>5. Tutorial: cómo publicar en la revista</h2>
+
+  <h3>5.1 Requisitos previos</h3>
+  <ol>
+    <li>Tener el proyecto Supabase conectado y las migraciones aplicadas.</li>
+    <li>Iniciar la app con <code>npm run dev</code>.</li>
+    <li>Iniciar el MCP de curación:
+      <pre><code>cd mcp/curation
+npm run dev</code></pre>
+      Debe aparecer <code>mcp-curacion escuchando en http://localhost:3001/mcp</code>.
+    </li>
+    <li>Ingresar a <code>http://localhost:3000/acceso</code> con un usuario con rol <code>editor</code> o <code>admin</code>.</li>
+    <li>Si tu usuario aún no es editor, ejecutar en Supabase → SQL Editor:
+      <pre><code>update public.usuarios
+set rol = 'editor'
+where nombre = 'ekn47';</code></pre>
+    </li>
+  </ol>
+  <div class="note">Sin el MCP levantado, la subida y la generación de versiones fallan. La publicación desde el Plano General depende de que ya exista una versión aprobada.</div>
+
+  <h3>5.2 Flujo desde el estudio editorial</h3>
+  <div class="steps">
+    <div class="step"><strong>Entrar a <code>/editor</code>.</strong> Sube un documento <code>.odt</code>, <code>.docx</code>, <code>.md</code> o <code>.txt</code> de hasta 20 MB. Puedes añadir imágenes.</div>
+    <div class="step"><strong>Esperar las versiones curadas.</strong> El MCP extrae el documento, detecta los saltos de página y genera variantes con Gemini.</div>
+    <div class="step"><strong>Si el artículo venía de una curación anterior, pulsar «Adaptar a páginas».</strong> Esto reprocesa el archivo guardado y asegura los marcadores <code>[[PAGINA]]</code> sin volver a subirlo.</div>
+    <div class="step"><strong>Elegir una versión.</strong> «Aprobar» la deja lista sin publicar; «Publicar en revista» la publica de una vez y copia su contenido al artículo.</div>
+    <div class="step"><strong>Verificar en <code>/revista</code>.</strong> Abre el menú del visor y entra a «Plano General»: la pieza aparece en «Piezas del estudio editorial» con badge «Publicado».</div>
+    <div class="step"><strong>Publicar desde el visor si aún estaba aprobada.</strong> En la tarjeta o en la vista previa, pulsar «Publicar». El visor vuelve automáticamente a la página 1.</div>
+    <div class="step"><strong>Recargar con Ctrl+F5.</strong> La portada y las siguientes páginas mostrarán el contenido real del documento.</div>
+  </div>
+
+  <h3>5.3 Qué ocurre al publicar</h3>
+  <ul>
+    <li><code>estado = 'publicado'</code> y <code>published_at = now()</code> en <code>public.articulos</code>.</li>
+    <li><code>version_activa_id</code> apunta a la versión elegida.</li>
+    <li>El contenido con marcadores <code>[[PAGINA]]</code> se divide y ocupa las páginas 1, 2, 3… del visor.</li>
+    <li>La tarjeta pública aparece en la sección inferior de <code>/revista</code> y en <code>GET /api/revista/articulos</code>.</li>
+  </ul>
+</section>
+
+<section id="borrar">
+  <h2>6. Tutorial: cómo quitar o borrar la publicación</h2>
+
+  <h3>6.1 Quitar de la revista (recomendado, reversible)</h3>
+  <p>Úsalo cuando quieras que el artículo deje de verse, pero conserves el historial de curación para volver a publicarlo después.</p>
+  <ol>
+    <li>Entrar a <code>/revista</code> y abrir el <strong>Plano General</strong>, o entrar a <code>/editor</code> con el artículo cargado.</li>
+    <li>Buscar la pieza y pulsar <strong>«Quitar»</strong> en la tarjeta, <strong>«Quitar de revista»</strong> en la vista previa o en el historial.</li>
+    <li>Confirmar el aviso del navegador.</li>
+    <li>Recargar con Ctrl+F5.</li>
+  </ol>
+  <p>Internamente se ejecuta:</p>
+  <pre><code>PATCH /api/curation/articulos/[id]/estado
+{ "estado": "borrador" }</code></pre>
+  <p>Equivalente SQL si necesitas hacerlo desde Supabase:</p>
+  <pre><code>update public.articulos
+set estado = 'borrador', published_at = null
+where id = 'ddab7db1-e664-47c5-9af7-90915f05585f';</code></pre>
+  <div class="success"><strong>Resultado:</strong> desaparece del visor, del Plano General y de la API pública. Las versiones siguen en <code>curacion_versiones</code>.</div>
+
+  <h3>6.2 Eliminar definitivamente</h3>
+  <p>Borra el artículo, todas sus versiones y los archivos asociados en Storage. No se puede deshacer.</p>
+  <ol>
+    <li>Entrar a <code>/revista</code> → Plano General, o a <code>/editor</code>.</li>
+    <li>Pulsar <strong>«Eliminar»</strong> o <strong>«Eliminar definitivamente»</strong>.</li>
+    <li>Confirmar el aviso: «¿Eliminar definitivamente el artículo, sus versiones y sus archivos?».</li>
+    <li>Recargar con Ctrl+F5.</li>
+  </ol>
+  <p>Internamente se ejecuta:</p>
+  <pre><code>DELETE /api/curation/articulos/[id]</code></pre>
+  <p>Equivalente SQL:</p>
+  <pre><code>delete from public.articulos
+where id = 'ddab7db1-e664-47c5-9af7-90915f05585f';</code></pre>
+  <div class="danger-note"><strong>Importante:</strong> la eliminación en cascada borra las versiones, pero los objetos en Storage se eliminan de forma independiente desde el endpoint. Si borras solo con SQL, los archivos del bucket permanecen.</div>
+
+  <h3>6.3 Dónde están los botones</h3>
+  <table>
+    <thead><tr><th>Ubicación</th><th>Botones</th></tr></thead>
+    <tbody>
+      <tr><td><code>/editor</code> → Historial de curación</td><td><strong>Quitar de revista</strong> y <strong>Eliminar definitivamente</strong></td></tr>
+      <tr><td><code>/revista</code> → Plano General</td><td><strong>Quitar</strong> y <strong>Eliminar</strong> en cada pieza</td></tr>
+      <tr><td><code>/revista</code> → Vista previa editorial</td><td><strong>Quitar de revista</strong> y <strong>Eliminar</strong></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="verificacion">
+  <h2>7. Verificación</h2>
+  <table>
+    <thead><tr><th>Comprobación</th><th>Comando o prueba</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Tipos TypeScript</td><td><code>npx tsc --noEmit</code></td><td><span class="ok">SIN ERRORES</span></td></tr>
+      <tr><td>Lint</td><td><code>npm run lint</code></td><td><span class="ok">SIN WARNING NI ERROR</span></td></tr>
+      <tr><td>CSS de la app</td><td><code>GET /_next/static/css/app/layout.css</code></td><td><span class="ok">200</span></td></tr>
+      <tr><td>API pública</td><td><code>GET /api/revista/articulos</code></td><td><span class="ok">200</span></td></tr>
+      <tr><td>Endpoints protegidos sin sesión</td><td><code>GET</code>, <code>PATCH</code> y <code>DELETE</code> sobre <code>/api/curation/articulos/[id]</code></td><td><span class="ok">401</span> con «Debes iniciar sesión»</td></tr>
+      <tr><td>Visor con estilos</td><td>Chrome headless sobre <code>/revista</code></td><td><span class="ok">OK</span>: pág 1 con portada publicada; págs 2 y 3 con contenido real</td></tr>
+    </tbody>
+  </table>
+  <p>El incidente de página sin estilos se originó porque se borró <code>.next</code> mientras el servidor de desarrollo seguía activo. Se solucionó deteniendo los procesos, eliminando <code>.next</code> y reiniciando un único <code>npm run dev</code>.</p>
+</section>
+
+<section id="estado">
+  <h2>8. Estado y recomendaciones</h2>
+  <ul>
+    <li><strong>Rotar la key de Gemini</strong> que quedó expuesta en el chat y actualizar <code>.env.local</code> y el MCP si se cambia.</li>
+    <li><strong>Eliminar la service role key antigua</strong> en Supabase → Settings → API Keys si todavía aparece.</li>
+    <li><strong>No ejecutar <code>npm run build</code> ni borrar <code>.next</code> mientras <code>npm run dev</code> esté activo.</strong> Si ocurre, reinicia el dev server.</li>
+    <li><strong>Deploy pendiente:</strong> en Vercel habría que adaptar los MCP locales antes de publicar el estudio editorial.</li>
+    <li><strong>Paginación actual:</strong> el documento cargado produce 11 páginas. Las páginas 12 a 16 del visor permanecen con contenido base porque no hay saltos para ellas.</li>
+  </ul>
+  <div class="success">Con este informe, cualquier editor puede publicar una pieza, verla en la Revista Digital y retirarla o eliminarla sin depender de SQL, excepto en los casos de administración directa.</div>
+</section>
+
+<footer>Talento Tech Valle · Informe operativo v1.1 · 24 de noviembre de 2026</footer>
+</div>
+</body>
+</html>

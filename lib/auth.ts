@@ -1,3 +1,4 @@
+import { mensajeSinSupabase, supabaseConfigurado } from "./config";
 import { createSupabaseServer } from "./supabase/server";
 
 export class ApiError extends Error {
@@ -12,6 +13,7 @@ export class ApiError extends Error {
 export type Rol = "estudiante" | "editor" | "admin";
 
 export async function requireUser(roles?: Rol[]) {
+  if (!supabaseConfigurado) throw new ApiError(503, mensajeSinSupabase);
   const supabase = await createSupabaseServer();
   const {
     data: { user },
@@ -29,6 +31,15 @@ export async function requireUser(roles?: Rol[]) {
   if (roles && !roles.includes(rol)) throw new ApiError(403, "No tienes permisos para esta acción");
 
   return { supabase, user, rol };
+}
+
+export async function optionalUser() {
+  if (!supabaseConfigurado) return { supabase: null, user: null };
+  const supabase = await createSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return { supabase, user };
 }
 
 export function responderError(error: unknown): Response {

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Informe final de entrega y despliegue gratuito — Talento Tech Valle</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #111c2f;
+    --panel-2: #0e1728;
+    --border: #1e2c44;
+    --text: #dbe7f5;
+    --muted: #8fa3bd;
+    --accent: #22d3ee;
+    --accent-2: #34d399;
+    --warn: #fbbf24;
+    --code: #0a1424;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.65;
+    font-size: 15px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: linear-gradient(135deg, #0e2a3e 0%, #111c2f 55%, #131a30 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 36px;
+    margin-bottom: 28px;
+  }
+  .kicker { color: var(--accent); letter-spacing: .16em; text-transform: uppercase; font-size: 11px; font-weight: 700; }
+  h1 { margin: 8px 0 6px; font-size: 30px; line-height: 1.2; }
+  h2 { font-size: 21px; margin: 44px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); color: #eaf4ff; }
+  h3 { font-size: 16px; margin: 26px 0 10px; color: var(--accent); }
+  p { margin: 10px 0; }
+  .lead { color: var(--muted); max-width: 840px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    background: rgba(34, 211, 238, .08);
+    border: 1px solid rgba(34, 211, 238, .28);
+    color: #a5f3fc;
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  nav.toc { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; margin-bottom: 18px; }
+  nav.toc strong { display: block; font-size: 11px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  nav.toc a { color: var(--accent); text-decoration: none; font-size: 13px; display: inline-block; margin: 3px 16px 3px 0; }
+  nav.toc a:hover { text-decoration: underline; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 18px; }
+  section:target { border-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: #a9c6e6; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; background: rgba(255,255,255,.02); }
+  tr:last-child td { border-bottom: none; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: rgba(34, 211, 238, .09);
+    color: #a5f3fc;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  pre { background: var(--code); border: 1px solid var(--border); border-radius: 10px; padding: 16px; overflow-x: auto; font-size: 12px; line-height: 1.55; color: #cbd9ea; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .ok, .partial { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+  .ok { color: #6ee7b7; background: rgba(52, 211, 153, .12); border: 1px solid rgba(52, 211, 153, .3); }
+  .partial { color: #fcd34d; background: rgba(251, 191, 36, .1); border: 1px solid rgba(251, 191, 36, .3); }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .note { border-left: 3px solid var(--warn); background: rgba(251, 191, 36, .06); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: #fde68a; }
+  .success { border-left: 3px solid var(--accent-2); background: rgba(52, 211, 153, .06); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: #a7f3d0; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 36px; }
+  @media (max-width: 760px) {
+    .wrap { padding: 16px 12px 48px; }
+    header.hero { padding: 22px; }
+    section { padding: 18px 16px; }
+    h1 { font-size: 24px; }
+    table { display: block; overflow-x: auto; }
+  }
+  @media print {
+    body { background: #fff; color: #111; font-size: 11px; }
+    .wrap { max-width: none; padding: 0; }
+    header.hero, section, nav.toc { background: #fff; border-color: #bbb; color: #111; }
+    nav.toc { display: none; }
+    h1, h2, h3, th { color: #111; }
+    .lead, footer, .kicker { color: #444; }
+    pre { background: #f5f5f5; border-color: #ccc; color: #111; white-space: pre-wrap; }
+    code { background: #eee; color: #111; }
+    th { background: #f0f0f0; }
+    .note, .success { color: #333; background: #fafafa; }
+    section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Informe final de entrega · Talento Tech Valle</div>
+  <h1>Estado funcional, publicación editorial<br /><span style="color:var(--accent)">y despliegue en hosting gratuito</span></h1>
+  <p class="lead">Cierre de la implementación: Supabase real conectado, migraciones aplicadas, autenticación verificada y aplicación corriendo en local. Este documento explica además cómo publicar artículos en la revista y cómo subir el proyecto a un plan gratuito.</p>
+  <div class="chips">
+    <span class="chip">Fecha: 23 de noviembre de 2026</span>
+    <span class="chip">Versión: informe final v3.0</span>
+    <span class="chip">Stack: Next.js 14 · TypeScript · Supabase Auth/DB/Storage</span>
+    <span class="chip">Estado: local OK · deploy pendiente</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>Contenido</strong>
+  <a href="#estado">1. Estado actual</a>
+  <a href="#funcional">2. Qué funciona hoy</a>
+  <a href="#revista">3. Cómo publicar en la revista</a>
+  <a href="#paginas">4. Páginas y APIs</a>
+  <a href="#cantidades">4.1 Cantidades para la revista</a>
+  <a href="#vercel">5. Despliegue gratuito con Vercel</a>
+  <a href="#variables">6. Variables de entorno</a>
+  <a href="#produccion">7. Ajustes en Supabase para producción</a>
+  <a href="#alternativas">8. Alternativas gratuitas</a>
+  <a href="#verificacion">9. Verificación post-deploy</a>
+  <a href="#pendientes">10. Pendientes</a>
+</nav>
+
+<section id="estado">
+  <h2>1. Estado actual</h2>
+  <table>
+    <thead><tr><th>Componente</th><th>Estado</th><th>Evidencia</th></tr></thead>
+    <tbody>
+      <tr><td>Migraciones SQL</td><td><span class="ok">APLICADAS</span></td><td><code>supabase/setup-completo.sql</code>, ejecutado una vez; verificado dos veces en Postgres local (8 tablas, vista de 15 columnas).</td></tr>
+      <tr><td>Conexión Supabase desde la app</td><td><span class="ok">OK</span></td><td><code>GET /api/proyectos</code> devuelve <code>"configurado":true</code>.</td></tr>
+      <tr><td>Auth</td><td><span class="ok">OK</span></td><td><code>email: true</code>, <code>disable_signup: false</code>, <code>mailer_autoconfirm: true</code>.</td></tr>
+      <tr><td>Perfil creado por trigger</td><td><span class="ok">OK</span></td><td><code>public.usuarios</code> contiene el perfil <code>ekn47</code> con rol <code>estudiante</code>.</td></tr>
+      <tr><td>Service role key</td><td><span class="ok">ROTADA</span></td><td>Se creó una secret key nueva y se actualizó <code>.env.local</code>; la antigua debe eliminarse en Supabase → API Keys.</td></tr>
+      <tr><td>Revista pública</td><td><span class="ok">OK</span></td><td><code>GET /api/revista/articulos</code> responde <code>[]</code>: aún no hay artículos publicados.</td></tr>
+      <tr><td>MCP de curación / diagnóstico</td><td><span class="partial">LOCAL SIN LEVANTAR</span></td><td>Puertos <code>3001</code> y <code>3002</code> sin respuesta; <code>OPENAI_API_KEY</code> sigue siendo placeholder.</td></tr>
+      <tr><td>Deploy público</td><td><span class="partial">PENDIENTE</span></td><td>La web solo está disponible en <code>http://localhost:3000</code>.</td></tr>
+    </tbody>
+  </table>
+  <div class="success"><strong>Conclusión:</strong> el producto es funcional en local y usa el proyecto Supabase hospedado.falta únicamente publicar la web y, si se quiere usar el estudio editorial con IA, desplegar los MCP.</div>
+</section>
+
+<section id="funcional">
+  <h2>2. Qué funciona hoy</h2>
+  <ul>
+    <li><strong>Registro e ingreso</strong> en <code>/acceso</code> con email y contraseña, sin confirmación de correo en este entorno de pruebas.</li>
+    <li><strong>Creación automática de perfil</strong> en <code>public.usuarios</code> mediante el trigger <code>handle_new_user()</code>.</li>
+    <li><strong>Primera publicación</strong> en <code>/publicar</code>: portada en Storage, diagnóstico y proyecto con consentimiento explícito.</li>
+    <li><strong>Top 10</strong> en <code>/top10</code>: ranking semanal, likes, estrellas y comentarios. Lectura pública, escritura con sesión.</li>
+    <li><strong>Revista pública</strong> en <code>/revista</code>: artículos con estado <code>publicado</code>, ordenados por fecha.</li>
+    <li><strong>Estudio editorial</strong> en <code>/editor</code>: subida de documento, generación de versiones y botón «Publicar en revista», siempre que el MCP de curación esté activo.</li>
+  </ul>
+  <p>La publicación de emprendimientos y las interacciones del Top 10 <strong>no dependen de los MCP</strong>. Solo la curación asistida y el diagnóstico con LLM los necesitan.</p>
+</section>
+
+<section id="revista">
+  <h2>3. Cómo publicar en la revista</h2>
+
+  <h3>3.1 Flujo completo desde el estudio editorial</h3>
+  <ol>
+    <li>Promover tu usuario a editor en Supabase → SQL Editor:
+<pre><code>update public.usuarios
+set rol = 'editor'
+where nombre = 'ekn47';
+
+select nombre, rol from public.usuarios;</code></pre>
+    </li>
+    <li>Entrar a <code>/editor</code> y subir un archivo <code>.docx</code>, <code>.odt</code>, <code>.md</code> o <code>.txt</code> (máximo 20 MB). Opcionalmente, imágenes.</li>
+    <li>Esperar las versiones generadas por el MCP de curación en <code>localhost:3001/mcp</code>.</li>
+    <li>En «Historial de curación», pulsar <strong>«Aprobar»</strong> o directamente <strong>«Publicar en revista»</strong> en la versión elegida.</li>
+    <li>El endpoint <code>PATCH /api/curation/versions/:id/select</code> copia título, resumen y contenido de la versión al artículo, fija <code>estado = 'publicado'</code> y escribe <code>published_at</code>.</li>
+    <li>Recargar <code>/revista</code>: el artículo aparece como tarjeta pública.</li>
+  </ol>
+  <div class="note">Si el MCP no está levantado, la subida fallará. Para probar la revista sin MCP puedes usar el atajo SQL de abajo.</div>
+
+  <h3>3.2 Atajo directo sin MCP</h3>
+<pre><code>insert into public.articulos
+  (editor_id, titulo, slug, resumen, contenido_md, estado, published_at)
+select
+  id,
+  'Mi primer artículo',
+  'mi-primer-articulo-' || floor(extract(epoch from now()))::text,
+  'Resumen corto que aparece en la tarjeta.',
+  'Contenido en Markdown del artículo.',
+  'publicado',
+  now()
+from public.usuarios
+where nombre = 'ekn47';</code></pre>
+  <p>Después ejecuta <code>select titulo, estado, published_at from public.articulos;</code> y recarga <code>/revista</code>.</p>
+</section>
+
+<section id="paginas">
+  <h2>4. Páginas y APIs</h2>
+  <p>El sitio tiene <strong>8 páginas visibles</strong> y <strong>10 rutas API</strong>. La revista es una sola página, sin paginación, con un máximo de 20 artículos por consulta.</p>
+  <table>
+    <thead><tr><th>Página</th><th>Quién la ve</th><th>Función</th></tr></thead>
+    <tbody>
+      <tr><td><code>/</code></td><td>Público</td><td>Portada y revista visual del prototipo.</td></tr>
+      <tr><td><code>/acceso</code></td><td>Público</td><td>Registro e inicio de sesión.</td></tr>
+      <tr><td><code>/publicar</code></td><td>Con sesión</td><td>Primera publicación con portada y consentimiento.</td></tr>
+      <tr><td><code>/top10</code></td><td>Público</td><td>Ranking con likes, estrellas y comentarios.</td></tr>
+      <tr><td><code>/revista</code></td><td>Público</td><td>Artículos editoriales publicados.</td></tr>
+      <tr><td><code>/editor</code></td><td>Editor/admin</td><td>Estudio de curación y botón de publicación.</td></tr>
+      <tr><td><code>/diagnostico</code></td><td>Público</td><td>Diagnóstico local con opción de enviar a la API.</td></tr>
+      <tr><td><code>/hito-5</code></td><td>Público</td><td>Entregable informativo del hito 5.</td></tr>
+    </tbody>
+  </table>
+  <p>Rutas API: <code>/api/proyectos</code> (GET/POST), <code>/api/proyectos/[id]/like</code>, <code>/api/proyectos/[id]/rate</code>, <code>/api/proyectos/[id]/comments</code>, <code>/api/revista/articulos</code>, <code>/api/diagnostic/analyze</code>, <code>/api/curation/upload</code>, <code>/api/curation/generate</code>, <code>/api/curation/versions</code> y <code>/api/curation/versions/[id]/select</code>.</p>
+
+  <h3 id="cantidades">4.1 Cantidades para dejar la revista completa</h3>
+  <table>
+    <thead><tr><th>Vista</th><th>Qué se necesita subir</th><th>Imágenes</th><th>Fuente</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Revista visual del prototipo (<code>/</code>)</td>
+        <td><strong>0 artículos nuevos.</strong> Ya trae <strong>16 páginas</strong> predefinidas en <code>lib/magazine-data.ts</code> (portada, prólogo, núcleo temático, epílogo y contraportada).</td>
+        <td>No requiere 16 imágenes. Solo se reemplaza dinámicamente la <strong>página 5</strong> cuando publicas un proyecto desde <code>/publicar</code>: <strong>1 portada</strong> por proyecto.</td>
+        <td><code>lib/magazine-data.ts:3</code></td>
+      </tr>
+      <tr>
+        <td>Revista editorial (<code>/revista</code>)</td>
+        <td><strong>20 artículos publicados</strong> para llenar el máximo que consulta la API. Con menos, se muestran menos tarjetas.</td>
+        <td><strong>1 imagen de portada por artículo</strong> (la sugerida por la versión curada). El uploader acepta <strong>hasta 5 imágenes por documento</strong> para que el MCP elija.</td>
+        <td><code>app/api/revista/articulos/route.ts:34</code>, <code>components/curation/DocumentUploader.tsx:143</code></td>
+      </tr>
+      <tr>
+        <td>Top 10 (<code>/top10</code>)</td>
+        <td>No hay tope de proyectos; el ranking muestra los <strong>10</strong> mejores de los últimos 7 días.</td>
+        <td><strong>1 imagen de portada por proyecto</strong>, opcional. Formatos PNG/JPEG/WEBP, máximo 10 MB.</td>
+        <td><code>components/publication/PublicationForm.tsx</code></td>
+      </tr>
+    </tbody>
+  </table>
+  <p><strong>Resumen operativo:</strong> para entregar la revista completa con el flujo editorial, sube <strong>20 documentos</strong> (uno por artículo) y <strong>20 portadas</strong> como mínimo; si subes el máximo permitido en el estudio editorial serían <strong>100 imágenes</strong> (5 por documento). Para la revista visual de 16 páginas no hay que subir nada adicional: ya viene cargada, y cada publicación desde <code>/publicar</code> solo añade 1 portada que ocupa la página 5.</p>
+  <div class="note">Estado actual: hay <strong>0 artículos publicados</strong> y <strong>0 portadas de proyecto</strong> en Storage. La revista visual ya muestra sus 16 páginas de ejemplo desde el primer arranque.</div>
+</section>
+
+<section id="vercel">
+  <h2>5. Despliegue gratuito con Vercel (recomendado)</h2>
+  <ol>
+    <li>Sube el repositorio a GitHub, GitLab o Bitbucket. Verifica que <code>.env.local</code> no se suba: ya está en <code>.gitignore</code>.</li>
+    <li>En <a href="https://vercel.com/">Vercel</a>, inicia sesión y pulsa <strong>Add New → Project</strong>.</li>
+    <li>Importa el repositorio. Deja <strong>Root Directory</strong> en la raíz y <strong>Framework Preset</strong> en <em>Next.js</em>. Vercel detecta <code>npm install</code> y <code>npm run build</code>.</li>
+    <li>Antes de desplegar, abre <strong>Environment Variables</strong> y carga las mismas variables de <code>.env.local</code> (sección 6). Marca los ambientes <em>Production</em>, <em>Preview</em> y <em>Development</em> según convenga.</li>
+    <li>Pulsa <strong>Deploy</strong> y espera el build. Copia la URL resultante, por ejemplo <code>https://talento-tech-valle.vercel.app</code>.</li>
+    <li>En Supabase → <strong>Authentication → URL Configuration</strong>, cambia:
+<pre><code>Site URL = https://talento-tech-valle.vercel.app
+Redirect URLs = https://talento-tech-valle.vercel.app/**</code></pre>
+      Conserva <code>http://localhost:3000/**</code> si todavía vas a probar en local.</li>
+    <li>Si cambiaste variables después del primer deploy, haz <strong>Redeploy</strong>.</li>
+    <li>Opcional: en Vercel → <strong>Settings → Domains</strong> puedes añadir un dominio propio y repetir el paso 6 con ese dominio.</li>
+  </ol>
+  <div class="note">El plan Hobby de Vercel es gratuito para proyectos personales o de demostración. Supabase Free y Vercel Hobby tienen límites de uso; revisa las cuotas antes de compartir el enlace públicamente.</div>
+</section>
+
+<section id="variables">
+  <h2>6. Variables de entorno</h2>
+  <p>Cópialas desde tu <code>.env.local</code> actual. Usa la secret key <strong>nueva</strong>, no la que compartiste en el chat.</p>
+  <table>
+    <thead><tr><th>Variable</th><th>Valor</th><th>Observación</th></tr></thead>
+    <tbody>
+      <tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td><code>https://TU-REF.supabase.co</code></td><td>Solo la base, sin <code>/rest/v1/</code>.</td></tr>
+      <tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td><code>sb_publishable_…</code></td><td>Puede exponerse al navegador; RLS la limita.</td></tr>
+      <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td><code>sb_secret_…</code></td><td>Solo servidor. Nunca llevar prefijo <code>NEXT_PUBLIC_</code>.</td></tr>
+      <tr><td><code>MCP_ALLOWED_HOSTS</code></td><td><code>TU-REF.supabase.co</code></td><td>Host de Supabase, sin <code>https://</code> ni barra final.</td></tr>
+      <tr><td><code>MCP_CURACION_URL</code></td><td><code>http://localhost:3001/mcp</code></td><td>Solo funciona en local, salvo que despliegues el MCP.</td></tr>
+      <tr><td><code>MCP_DIAGNOSTICO_URL</code></td><td><code>http://localhost:3002/mcp</code></td><td>Igual que la anterior.</td></tr>
+      <tr><td><code>OPENAI_API_KEY</code></td><td><code>sk-…</code> real</td><td>Necesaria para curación/diagnóstico con LLM.</td></tr>
+      <tr><td><code>OPENAI_BASE_URL</code>, <code>CURACION_MODEL</code>, <code>DIAGNOSTICO_MODEL</code>, <code>GITHUB_TOKEN</code></td><td>Según tu proveedor</td><td>Opcionales para el flujo básico.</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Si la service role key aparece en un log, ticket o chat, créala de nuevo en Supabase → Settings → API Keys, actualiza la variable en Vercel y elimina la anterior.</div>
+</section>
+
+<section id="produccion">
+  <h2>7. Ajustes en Supabase para producción</h2>
+  <ol>
+    <li><strong>URLs de Auth:</strong> Site URL y Redirect URLs apuntando al dominio de Vercel, como se indicó arriba.</li>
+    <li><strong>Confirm email:</strong> en producción conviene reactivar <em>Confirm email</em>. El plan gratuito de Supabase envía un número muy limitado de correos por hora; para uso real configura SMTP propio en Authentication → Emails.</li>
+    <li><strong>Registro abierto:</strong> mantén <em>Allow new users to sign up</em> activo si cualquier visitante debe crear cuenta. Si será una beta cerrada, desactívalo y crea usuarios desde Authentication → Users.</li>
+    <li><strong>RLS:</strong> revisa que las políticas sigan siendo explícitas. La service role key bypassea RLS, por eso solo debe vivir en el servidor.</li>
+    <li><strong>Roles:</strong> asigna <code>editor</code> o <code>admin</code> solo a cuentas de confianza:
+<pre><code>update public.usuarios u
+set rol = 'editor'
+from auth.users a
+where a.id = u.id and a.email = 'editor@ejemplo.com';</code></pre>
+    </li>
+  </ol>
+</section>
+
+<section id="alternativas">
+  <h2>8. Alternativas gratuitas</h2>
+  <table>
+    <thead><tr><th>Plataforma</th><th>Ventaja</th><th>Consideración</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Vercel Hobby</strong></td><td>Mejor integración con Next.js; build y rutas API listas.</td><td>Recomendada para este proyecto.</td></tr>
+      <tr><td><strong>Render Free Web Service</strong></td><td>Permite Node.js y variables de entorno.</td><td>El servicio se duerme tras inactividad; el primer refresco puede tardar.</td></tr>
+      <tr><td><strong>Netlify</strong></td><td>Interfaz sencilla y dominio gratuito.</td><td>Necesita configurar el plugin de Next.js; Vercel es más directo.</td></tr>
+      <tr><td><strong>Cloudflare Pages</strong></td><td>Buen rendimiento y plan generoso.</td><td>Las rutas API de Next requieren adaptador/Workers; más trabajo.</td></tr>
+    </tbody>
+  </table>
+  <p>Supabase ya está en plan gratuito y no hay que migrarlo: el deploy solo cambia el dominio desde el que se llama a la API.</p>
+</section>
+
+<section id="verificacion">
+  <h2>9. Verificación post-deploy</h2>
+  <ol>
+    <li>Abrir <code>https://TU-DOMINIO.vercel.app/api/proyectos</code>. Debe responder <code>{"proyectos":[],"configurado":true,"usuarioId":null}</code> o con proyectos, pero nunca <code>"configurado":false</code>.</li>
+    <li>Abrir <code>/acceso</code>, crear cuenta e iniciar sesión. Revisar en Supabase → Table Editor que apareció el perfil.</li>
+    <li>Probar <code>/publicar</code> y después <code>/top10</code>: like, estrellas y comentario.</li>
+    <li>Publicar un artículo por SQL o desde <code>/editor</code> yConfirmar que aparece en <code>/revista</code>.</li>
+    <li>Revisar la pestaña <em>Logs</em> de Vercel y los logs de Supabase si alguna escritura falla.</li>
+  </ol>
+  <p>En local, la comprobación equivalente es:</p>
+<pre><code>curl -s http://localhost:3000/api/proyectos
+curl -s http://localhost:3000/api/revista/articulos
+npx tsc --noEmit
+npm run lint</code></pre>
+  <p>Ambos comandos de calidad ya pasan sin errores en el estado actual del repositorio.</p>
+</section>
+
+<section id="pendientes">
+  <h2>10. Pendientes y recomendaciones</h2>
+  <ol>
+    <li>Eliminar la service role key antigua en Supabase → Settings → API Keys.</li>
+    <li>Desplegar los MCP en un hosting gratuito (Railway/Render/Fly.io) y reemplazar <code>MCP_CURACION_URL</code> y <code>MCP_DIAGNOSTICO_URL</code> con sus URLs públicas si se quiere usar <code>/editor</code> en producción.</li>
+    <li>Configurar <code>OPENAI_API_KEY</code> real en el hosting de los MCP.</li>
+    <li>Reactivar <em>Confirm email</em> y configurar SMTP antes de abrir registros al público.</li>
+    <li>Añadir rate limiting en likes, calificaciones y comentarios.</li>
+    <li>Sanitizar Markdown con <code>rehype-sanitize</code> si en el futuro se renderiza como HTML en la revista.</li>
+    <li>Conectar el diagnóstico al MCP para sustituir el <code>scoring</code> local por el reporte de IA.</li>
+  </ol>
+  <p>Archivos relacionados: <code>informe-implementacion.html</code> (arquitectura inicial), <code>informe-implementacion-2.html</code> (capa funcional) y este informe final.</p>
+</section>
+
+<footer>Informe final v3.0 · Talento Tech Valle · 23 de noviembre de 2026</footer>
+</div>
+</body>
+</html>

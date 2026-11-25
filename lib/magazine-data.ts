@@ -19,6 +19,22 @@ export const initialMagazinePages: MagazinePage[] = [
   { page: 16, section: "Cierre", type: "Contraportada", title: "TALENTO TECH VALLE - NOV 2026", subtitle: "ISSN: 2026-0045 | Ley 1581 Protección de Datos", score: 95.0, status: "Aprobado", author: "Diseño Editorial", format: "Contraportada Minimalista", github: "N/A", bgClass: "bg-slate-950 text-slate-100" },
 ];
 
+export function paginasDeContenido(contenido: string | null | undefined): string[] {
+  if (!contenido) return [];
+  return contenido
+    .split(/\[\[PAGINA\]\]|\f|<!--\s*(?:pagebreak|salto[- ]?de[- ]?pagina|pagina)\s*-->/i)
+    .map((pagina) => pagina.replace(/[#*`>]/g, "").trim())
+    .filter(Boolean);
+}
+
+export function tituloDePagina(texto: string, respaldo: string): string {
+  const primeraLinea = texto
+    .split("\n")
+    .map((linea) => linea.trim())
+    .find(Boolean);
+  return (primeraLinea || respaldo).slice(0, 90);
+}
+
 export const LAST_SPREAD = 8;
 
 /** Convierte un número de página en el índice de doble página (spread). */

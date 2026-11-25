@@ -30,6 +30,20 @@ begin
   return new;
 end $$;
 
+-- ---------------------------------------------------------------------
+-- 1. Usuarios (perfil extendido de auth.users)
+-- ---------------------------------------------------------------------
+create table if not exists public.usuarios (
+  id            uuid primary key references auth.users(id) on delete cascade,
+  nombre        text not null,
+  avatar_url    text,
+  rol           public.user_role not null default 'estudiante',
+  bio           text,
+  programa      text,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
 create or replace function public.is_admin()
 returns boolean
 language sql security definer set search_path = public as $$
@@ -47,27 +61,14 @@ returns boolean language sql security definer set search_path = public as $$
   );
 $$;
 
--- ---------------------------------------------------------------------
--- 1. Usuarios (perfil extendido de auth.users)
--- ---------------------------------------------------------------------
-create table public.usuarios (
-  id            uuid primary key references auth.users(id) on delete cascade,
-  nombre        text not null,
-  avatar_url    text,
-  rol           public.user_role not null default 'estudiante',
-  bio           text,
-  programa      text,
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
-);
-
+drop trigger if exists usuarios_touch on public.usuarios;
 create trigger usuarios_touch before update on public.usuarios
   for each row execute function public.touch_updated_at();
 
 -- ---------------------------------------------------------------------
 -- 2. Artículos
 -- ---------------------------------------------------------------------
-create table public.articulos (
+create table if not exists public.articulos (
   id                  uuid primary key default gen_random_uuid(),
   editor_id           uuid not null references public.usuarios(id) on delete restrict,
   titulo              text not null,
@@ -84,16 +85,17 @@ create table public.articulos (
   published_at        timestamptz
 );
 
-create index articulos_estado_idx on public.articulos (estado, published_at desc);
-create index articulos_editor_idx on public.articulos (editor_id);
+create index if not exists articulos_estado_idx on public.articulos (estado, published_at desc);
+create index if not exists articulos_editor_idx on public.articulos (editor_id);
 
+drop trigger if exists articulos_touch on public.articulos;
 create trigger articulos_touch before update on public.articulos
   for each row execute function public.touch_updated_at();
 
 -- ---------------------------------------------------------------------
 -- 3. Versiones de curación (historial inmutable, n por artículo)
 -- ---------------------------------------------------------------------
-create table public.curacion_versiones (
+create table if not exists public.curacion_versiones (
   id                       uuid primary key default gen_random_uuid(),
   articulo_id              uuid not null references public.articulos(id) on delete cascade,
   numero                   integer not null check (numero > 0),
@@ -111,7 +113,7 @@ create table public.curacion_versiones (
   constraint curacion_versiones_articulo_numero_uq unique (articulo_id, numero)
 );
 
-create index curacion_versiones_articulo_idx
+create index if not exists curacion_versiones_articulo_idx
   on public.curacion_versiones (articulo_id, numero desc);
 
 -- Numeración automática: nunca se sobrescribe una versión.
@@ -125,17 +127,26 @@ begin
   return new;
 end $$;
 
+drop trigger if exists curacion_versiones_numero on public.curacion_versiones;
 create trigger curacion_versiones_numero before insert on public.curacion_versiones
   for each row execute function public.asignar_numero_version();
 
-alter table public.articulos
-  add constraint articulos_version_activa_fk
-  foreign key (version_activa_id) references public.curacion_versiones(id) on delete set null;
+do $$ begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'articulos_version_activa_fk'
+      and conrelid = 'public.articulos'::regclass
+  ) then
+    alter table public.articulos
+      add constraint articulos_version_activa_fk
+      foreign key (version_activa_id) references public.curacion_versiones(id) on delete set null;
+  end if;
+end $$;
 
 -- ---------------------------------------------------------------------
 -- 4. Diagnósticos (reporte del MCP de empleabilidad)
 -- ---------------------------------------------------------------------
-create table public.diagnosticos (
+create table if not exists public.diagnosticos (
   id                      uuid primary key default gen_random_uuid(),
   usuario_id              uuid references public.usuarios(id) on delete set null,
   github_url              text not null,
@@ -153,12 +164,12 @@ create table public.diagnosticos (
   created_at              timestamptz not null default now()
 );
 
-create index diagnosticos_usuario_idx on public.diagnosticos (usuario_id, created_at desc);
+create index if not exists diagnosticos_usuario_idx on public.diagnosticos (usuario_id, created_at desc);
 
 -- ---------------------------------------------------------------------
 -- 5. Proyectos (Top 10 emprendiendo)
 -- ---------------------------------------------------------------------
-create table public.proyectos (
+create table if not exists public.proyectos (
   id                         uuid primary key default gen_random_uuid(),
   owner_id                   uuid not null references public.usuarios(id) on delete cascade,
   diagnostico_id             uuid references public.diagnosticos(id) on delete set null,
@@ -173,17 +184,18 @@ create table public.proyectos (
   updated_at                 timestamptz not null default now()
 );
 
-create index proyectos_consentimiento_idx
+create index if not exists proyectos_consentimiento_idx
   on public.proyectos (consentimiento_publicacion, destacado_semana);
-create index proyectos_owner_idx on public.proyectos (owner_id);
+create index if not exists proyectos_owner_idx on public.proyectos (owner_id);
 
+drop trigger if exists proyectos_touch on public.proyectos;
 create trigger proyectos_touch before update on public.proyectos
   for each row execute function public.touch_updated_at();
 
 -- ---------------------------------------------------------------------
 -- 6. Comentarios
 -- ---------------------------------------------------------------------
-create table public.comentarios (
+create table if not exists public.comentarios (
   id          uuid primary key default gen_random_uuid(),
   proyecto_id uuid not null references public.proyectos(id) on delete cascade,
   usuario_id  uuid not null references public.usuarios(id) on delete cascade,
@@ -191,19 +203,19 @@ create table public.comentarios (
   created_at  timestamptz not null default now()
 );
 
-create index comentarios_proyecto_idx on public.comentarios (proyecto_id, created_at desc);
+create index if not exists comentarios_proyecto_idx on public.comentarios (proyecto_id, created_at desc);
 
 -- ---------------------------------------------------------------------
 -- 7. Likes y 8. Calificaciones (estrellas)
 -- ---------------------------------------------------------------------
-create table public.likes (
+create table if not exists public.likes (
   proyecto_id uuid not null references public.proyectos(id) on delete cascade,
   usuario_id  uuid not null references public.usuarios(id) on delete cascade,
   created_at  timestamptz not null default now(),
   primary key (proyecto_id, usuario_id)
 );
 
-create table public.calificaciones (
+create table if not exists public.calificaciones (
   proyecto_id uuid not null references public.proyectos(id) on delete cascade,
   usuario_id  uuid not null references public.usuarios(id) on delete cascade,
   estrellas   smallint not null check (estrellas between 1 and 5),
@@ -214,6 +226,7 @@ create table public.calificaciones (
 -- ---------------------------------------------------------------------
 -- 9. Vista Top 10 de la semana (interacciones de los últimos 7 días)
 -- ---------------------------------------------------------------------
+drop view if exists public.top10_semanal;
 create view public.top10_semanal with (security_invoker = true) as
 select
   p.id             as proyecto_id,
@@ -248,6 +261,31 @@ alter table public.proyectos           enable row level security;
 alter table public.comentarios         enable row level security;
 alter table public.likes               enable row level security;
 alter table public.calificaciones      enable row level security;
+
+drop policy if exists "usuarios_select" on public.usuarios;
+drop policy if exists "usuarios_update_own" on public.usuarios;
+drop policy if exists "articulos_select" on public.articulos;
+drop policy if exists "articulos_insert_editor" on public.articulos;
+drop policy if exists "articulos_update_own" on public.articulos;
+drop policy if exists "articulos_delete_own" on public.articulos;
+drop policy if exists "curacion_select" on public.curacion_versiones;
+drop policy if exists "curacion_insert_editor" on public.curacion_versiones;
+drop policy if exists "curacion_delete_editor" on public.curacion_versiones;
+drop policy if exists "diagnosticos_select_own" on public.diagnosticos;
+drop policy if exists "diagnosticos_insert_own" on public.diagnosticos;
+drop policy if exists "proyectos_select" on public.proyectos;
+drop policy if exists "proyectos_insert_own" on public.proyectos;
+drop policy if exists "proyectos_update_own" on public.proyectos;
+drop policy if exists "comentarios_select" on public.comentarios;
+drop policy if exists "comentarios_insert_own" on public.comentarios;
+drop policy if exists "comentarios_delete_own" on public.comentarios;
+drop policy if exists "likes_select" on public.likes;
+drop policy if exists "likes_insert_own" on public.likes;
+drop policy if exists "likes_delete_own" on public.likes;
+drop policy if exists "calificaciones_select" on public.calificaciones;
+drop policy if exists "calificaciones_upsert_own" on public.calificaciones;
+drop policy if exists "calificaciones_update_own" on public.calificaciones;
+drop policy if exists "calificaciones_delete_own" on public.calificaciones;
 
 -- usuarios: perfiles públicos; solo el dueño edita
 create policy "usuarios_select" on public.usuarios for select using (true);
