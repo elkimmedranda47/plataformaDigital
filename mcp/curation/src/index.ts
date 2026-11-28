@@ -8,7 +8,7 @@ import { completeJson } from "../../shared/src/llm";
 import { extraerDocumento, dividirEnPaginas, MARCADOR_PAGINA } from "../../shared/src/extract";
 import { descargarArchivo } from "../../shared/src/http";
 
-const PROMPT_VERSION = "curacion-v1.2-16paginas";
+const PROMPT_VERSION = "curacion-v1.3-contenido-completo";
 const PAGINAS_REVISTA = 16;
 const MODEL = process.env.CURACION_MODEL ?? "gpt-4o-mini";
 
@@ -87,8 +87,10 @@ function systemPrompt(): string {
     `El texto original trae ${MARCADOR_PAGINA} entre páginas. Conserva exactamente ese marcador`,
     `en contenido_curado_md entre cada página curada. La revista publica exactamente ${PAGINAS_REVISTA} páginas.`,
     `paginas_curadas debe tener exactamente ${PAGINAS_REVISTA} strings, sin marcadores y en orden;`,
-    "si el documento tiene más páginas, comprime y reparte el contenido sin perder secciones clave;",
-    "si tiene menos, reparte el contenido para completar las páginas editoriales.",
+    "conserva el texto completo del documento en esas páginas, párrafo por párrafo;",
+    "no sustituyas párrafos por resúmenes de una línea ni por simples encabezados de sección;",
+    "si el documento tiene más páginas, reparte el contenido completo sin perder secciones clave;",
+    "si tiene menos, divide y reparte el contenido para completar las páginas editoriales.",
     "indice_imagen_portada es el índice (base 0) de la imagen provista que mejor ilustra el artículo,",
     "o null si no hay imágenes. sugerencia_portada es un prompt breve para generar una portada",
     "solo cuando indice_imagen_portada sea null. Máximo 8 tags en minúsculas.",
@@ -96,12 +98,27 @@ function systemPrompt(): string {
 }
 
 function repartirTexto(texto: string, total: number): string[] {
-  const parrafos = texto.split(/\n\n+/).filter(Boolean);
-  if (parrafos.length <= 1) return [texto.trim(), ...Array(Math.max(0, total - 1)).fill("")];
-  const porPagina = Math.ceil(parrafos.length / total);
+  const objetivo = Math.max(1, total);
+  const limpio = texto.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  if (!limpio) return Array(objetivo).fill("");
+  const tamanoObjetivo = Math.ceil(limpio.length / objetivo);
   const salida: string[] = [];
-  for (let i = 0; i < total; i++) {
-    salida.push(parrafos.slice(i * porPagina, (i + 1) * porPagina).join("\n\n").trim());
+  let cursor = 0;
+  for (let i = 0; i < objetivo; i++) {
+    const fin = Math.min(limpio.length, (i + 1) * tamanoObjetivo);
+    let trozo = limpio.slice(cursor, fin).trim();
+    if (fin < limpio.length && trozo.length > 0) {
+      const espacio = trozo.lastIndexOf(" ");
+      if (espacio > trozo.length * 0.7) {
+        cursor += espacio + 1;
+        trozo = trozo.slice(0, espacio).trim();
+      } else {
+        cursor = fin;
+      }
+    } else {
+      cursor = fin;
+    }
+    salida.push(trozo);
   }
   return salida;
 }
@@ -109,6 +126,7 @@ function repartirTexto(texto: string, total: number): string[] {
 function ajustarPaginas(partes: string[], total: number): string[] {
   const limpias = partes.map((parte) => String(parte).trim()).filter(Boolean);
   const objetivo = Math.max(1, total);
+  if (!limpias.length) return Array(objetivo).fill("");
   if (limpias.length === objetivo) return limpias;
   if (limpias.length > objetivo) {
     const porPagina = Math.floor(limpias.length / objetivo);
@@ -122,8 +140,15 @@ function ajustarPaginas(partes: string[], total: number): string[] {
     }
     return salida;
   }
-  if (limpias.length === 1) return repartirTexto(limpias[0], objetivo);
-  return [...limpias, ...Array(objetivo - limpias.length).fill("")];
+  return repartirTexto(limpias.join("\n\n"), objetivo);
+}
+
+function seleccionarPaginasPublicables(paginasLLM: string[], paginasOriginales: string[]): string[] {
+  const candidatas = ajustarPaginas(paginasLLM, PAGINAS_REVISTA);
+  const originales = ajustarPaginas(paginasOriginales, PAGINAS_REVISTA);
+  const caracteresLLM = candidatas.reduce((suma, pagina) => suma + pagina.length, 0);
+  const caracteresOriginales = originales.reduce((suma, pagina) => suma + pagina.length, 0);
+  return caracteresLLM >= caracteresOriginales * 0.75 ? candidatas : originales;
 }
 
 function resultadoTexto(datos: Record<string, unknown>) {
@@ -237,9 +262,9 @@ export function crearServidorCuracion(): McpServer {
                 ? extraido.imagenes[indice].dataUrl
                 : data.sugerencia_portada;
 
-          const paginasCuradas = ajustarPaginas(
+          const paginasCuradas = seleccionarPaginasPublicables(
             data.paginas_curadas?.length ? data.paginas_curadas : dividirEnPaginas(data.contenido_curado_md),
-            PAGINAS_REVISTA,
+            extraido.paginas,
           );
           const contenidoConPaginas = paginasCuradas.join(`\n\n${MARCADOR_PAGINA}\n\n`);
 

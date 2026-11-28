@@ -7,7 +7,7 @@ function limpiar(texto: string) {
 
 function ContenidoMarkdown({ texto }: { texto: string }) {
   return (
-    <div className="space-y-2 text-[11px] md:text-xs leading-relaxed text-[#1a1a1a]">
+    <div className="space-y-2 text-[11px] md:text-xs leading-relaxed text-[#1a1a1a] md:columns-2 md:gap-5 [&>*]:break-inside-avoid">
       {texto.split("\n").map((linea, indice) => {
         const limpia = linea.trim();
         if (!limpia) return null;
@@ -46,38 +46,40 @@ export default function PageContent({ page: p }: { page: MagazinePage }) {
         <span className="text-neutral-300">{p.type}</span>
       </div>
 
-      <div className="my-auto space-y-3 py-4 min-h-0">
-        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#057dbc]">
-          {p.format} · {p.status}
-        </p>
+      <div className="flex-1 min-h-0 flex flex-col py-4 overflow-hidden">
+        <div className="space-y-3 shrink-0">
+          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#057dbc]">
+            {p.format} · {p.status}
+          </p>
 
-        {p.imagenPortadaUrl && (
-          <div
-            className="h-28 md:h-40 w-full bg-cover bg-center border border-[#d6d6d6]"
-            style={{ backgroundImage: `url("${p.imagenPortadaUrl}")` }}
-          />
-        )}
+          {p.imagenPortadaUrl && (
+            <div
+              className="h-28 md:h-40 w-full bg-cover bg-center border border-[#d6d6d6]"
+              style={{ backgroundImage: `url("${p.imagenPortadaUrl}")` }}
+            />
+          )}
 
-        <h3 className="text-xl md:text-3xl font-black uppercase leading-[1.05] tracking-[-0.04em] text-black">
-          {p.title}
-        </h3>
-        <p className="text-[11px] md:text-xs text-[#757575] line-clamp-2">{p.subtitle}</p>
+          <h3 className="text-xl md:text-3xl font-black uppercase leading-[1.05] tracking-[-0.04em] text-black">
+            {p.title}
+          </h3>
+          <p className="text-[11px] md:text-xs text-[#757575] line-clamp-2">{p.subtitle}</p>
+
+          {p.github !== "N/A" && (
+            <a
+              href={p.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[10px] text-[#057dbc] font-mono underline"
+            >
+              <FaGithub /> {p.github}
+            </a>
+          )}
+        </div>
 
         {p.esArticulo && p.contenidoMd && (
-          <div className="max-h-[46%] overflow-y-auto pr-2 border-t border-[#e5e5e5] pt-3">
+          <div className="mt-3 flex-1 min-h-0 overflow-y-auto pr-2 border-t border-[#e5e5e5] pt-3">
             <ContenidoMarkdown texto={p.contenidoMd} />
           </div>
-        )}
-
-        {p.github !== "N/A" && (
-          <a
-            href={p.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[10px] text-[#057dbc] font-mono underline"
-          >
-            <FaGithub /> {p.github}
-          </a>
         )}
       </div>
 
